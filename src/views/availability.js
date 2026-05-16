@@ -23,7 +23,7 @@ export async function renderAvailability({ hotelId, roomId }) {
   const byDate = Object.fromEntries(rows.map((r) => [r.date, r]));
 
   app.innerHTML = `
-    <p><a href="#/hotel/${hotelId}">${t("app.back")}</a></p>
+    <p><a href="#/room/${hotelId}/${roomId}">${t("app.back")}</a></p>
     <h1>${t("avail.title", { room: escapeHtml(room.name_ru) })}</h1>
     <div class="muted">Цена по умолчанию: ${room.price_kgs} сом/ночь</div>
     <div class="cal-legend">
