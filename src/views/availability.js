@@ -1,6 +1,7 @@
 import { api } from "../api.js";
 import { t } from "../i18n.js";
 import { escapeHtml, isoDay, todayPlus } from "../util.js";
+import { openWalkinModal } from "./walkin_modal.js";
 
 const DAYS_AHEAD = 28;
 
@@ -58,18 +59,17 @@ export async function renderAvailability({ hotelId, roomId }) {
 
 function openEditor(date, row, room, hotelId, roomId) {
   const mount = document.getElementById("modal-mount");
-  const status = row?.status || "free";
+  const isBlocked = (row?.status || "free") === "blocked";
   const price = row?.price_override ?? "";
   mount.innerHTML = `
     <div class="modal-bg">
       <div class="modal">
         <h2>${t("avail.edit_title", { date })}</h2>
         <div class="form-row">
-          <label>${t("avail.status")}</label>
-          <select id="m-status">
-            <option value="free" ${status === "free" ? "selected" : ""}>${t("avail.status.free")}</option>
-            <option value="blocked" ${status === "blocked" ? "selected" : ""}>${t("avail.status.blocked")}</option>
-          </select>
+          <label style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="m-blocked" ${isBlocked ? "checked" : ""}>
+            ${t("avail.status.blocked")}
+          </label>
         </div>
         <div class="form-row">
           <label>${t("avail.price_override")}</label>
@@ -79,23 +79,36 @@ function openEditor(date, row, room, hotelId, roomId) {
           <button class="secondary" id="m-cancel">${t("app.cancel")}</button>
           <button class="primary" id="m-save">${t("app.save")}</button>
         </div>
+        <hr style="margin:14px 0;border:none;border-top:1px solid var(--border)">
+        <button class="primary" id="m-walkin" style="width:100%">${t("walkin.btn")}</button>
         <div id="m-err" class="error"></div>
       </div>
     </div>
   `;
   document.getElementById("m-cancel").onclick = () => (mount.innerHTML = "");
   document.getElementById("m-save").onclick = async () => {
-    const s = document.getElementById("m-status").value;
+    const blocked = document.getElementById("m-blocked").checked;
     const pRaw = document.getElementById("m-price").value;
     const p = pRaw === "" ? null : Number(pRaw);
+    const status = blocked ? "blocked" : "free";
     try {
       await api.updateAvailability(hotelId, roomId, [
-        { date, status: s, price_override: p },
+        { date, status, price_override: p },
       ]);
       mount.innerHTML = "";
       renderAvailability({ hotelId, roomId });
     } catch (e) {
       document.getElementById("m-err").textContent = t("app.error", { msg: e.message });
     }
+  };
+  document.getElementById("m-walkin").onclick = () => {
+    mount.innerHTML = "";
+    openWalkinModal({
+      hotelId,
+      roomId,
+      room,
+      initialDate: date,
+      onSuccess: () => renderAvailability({ hotelId, roomId }),
+    });
   };
 }

@@ -11,7 +11,7 @@ function cardHtml(h) {
     ? `<div class="hotel-thumb" style="background-image:url('${escapeHtml(photo)}')"></div>`
     : `<div class="hotel-thumb hotel-thumb-empty"></div>`;
   return `
-    <div class="card hotel-row">
+    <div class="card hotel-row clickable-card" data-href="#/hotel/${h.id}" role="link" tabindex="0">
       ${photoHtml}
       <div class="hotel-row-body">
         <h3>${escapeHtml(h.name_ru)}</h3>
@@ -19,10 +19,26 @@ function cardHtml(h) {
         <span class="status-pill ${h.status}">${t("hotels.status." + h.status)}</span>
       </div>
       <div class="hotel-actions">
-        <a class="hotel-edit-btn" href="#/hotel/${h.id}" title="${t("hotels.edit")}" aria-label="${t("hotels.edit")}">⚙</a>
         <a class="hotel-edit-btn" href="#/hotel/${h.id}/rooms" title="${t("hotels.rooms_btn")}" aria-label="${t("hotels.rooms_btn")}">🛏</a>
       </div>
     </div>`;
+}
+
+function attachCardHandlers(container) {
+  container.addEventListener("click", (e) => {
+    if (e.target.closest("a, button")) return;
+    const card = e.target.closest(".clickable-card");
+    if (!card) return;
+    const href = card.dataset.href;
+    if (href) location.hash = href;
+  });
+  container.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const card = e.target.closest(".clickable-card");
+    if (!card) return;
+    e.preventDefault();
+    location.hash = card.dataset.href;
+  });
 }
 
 export async function renderHotelsList() {
@@ -38,6 +54,7 @@ export async function renderHotelsList() {
       return;
     }
     list.innerHTML = hotels.map(cardHtml).join("");
+    attachCardHandlers(list);
   } catch (e) {
     document.getElementById("list").innerHTML =
       `<div class="error">${t("app.error", { msg: e.message })}</div>`;

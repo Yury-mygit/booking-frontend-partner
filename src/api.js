@@ -15,6 +15,11 @@ async function call(method, path, body) {
     const err = new Error(data.message || r.statusText);
     err.code = data.error || "http_error";
     err.status = r.status;
+    // Notify the app about partner_pending so it can switch to the waiting
+    // screen even if the user clicked a deep link past the gate.
+    if (err.code === "partner_pending") {
+      window.dispatchEvent(new CustomEvent("apierror", { detail: err }));
+    }
     throw err;
   }
   return data;
@@ -46,6 +51,7 @@ export const api = {
     return call("POST", `/auth/dev-login?${qs}`);
   },
   whoami: () => call("GET", "/auth/whoami"),
+  authToken: () => _token,
 
   // Hotels (partner)
   listHotels: () => call("GET", "/p/hotels"),
@@ -103,4 +109,28 @@ export const api = {
     call("GET", "/p/bookings" + (statusFilter ? `?status=${statusFilter}` : "")),
   confirmBooking: (code) => call("POST", `/p/bookings/${code}/confirm`),
   cancelBooking: (code) => call("POST", `/p/bookings/${code}/cancel`),
+
+  // Walk-in
+  createWalkinBooking: (payload) => call("POST", "/p/walkin-bookings", payload),
+
+  // Flat rooms (across all my hotels)
+  listAllRooms: () => call("GET", "/p/rooms"),
+
+  // Clients
+  listClients: () => call("GET", "/p/clients"),
+  getClient: (id) => call("GET", `/p/clients/${id}`),
+  updateClient: (id, payload) => call("PUT", `/p/clients/${id}`, payload),
+  listClientBookings: (id) => call("GET", `/p/clients/${id}/bookings`),
+  lookupClient: (payload) => call("POST", "/p/clients/lookup", payload),
+  async uploadClientPhoto(id, file) {
+    const fd = new FormData();
+    fd.append("file", file);
+    const headers = {};
+    if (_token) headers.Authorization = `Bearer ${_token}`;
+    const r = await fetch(`${BASE}/p/clients/${id}/photo`, { method: "POST", headers, body: fd });
+    const data = await r.json();
+    if (!r.ok) { const e = new Error(data.message || r.statusText); e.code = data.error; throw e; }
+    return data;
+  },
+  deleteClientPhoto: (id) => call("DELETE", `/p/clients/${id}/photo`),
 };
