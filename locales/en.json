@@ -17,6 +17,7 @@
   "hotels.title": "My hotels",
   "hotels.new": "+ New hotel",
   "hotels.empty": "No hotels yet — create the first one",
+  "hotels.edit": "Edit",
   "hotels.status.draft": "draft",
   "hotels.status.published": "published",
   "hotels.status.blocked": "blocked",

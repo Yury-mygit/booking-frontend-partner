@@ -17,6 +17,7 @@
   "hotels.title": "Мои отели",
   "hotels.new": "+ Новый отель",
   "hotels.empty": "Отелей пока нет — создайте первый",
+  "hotels.edit": "Редактировать",
   "hotels.status.draft": "черновик",
   "hotels.status.published": "опубликован",
   "hotels.status.blocked": "заблокирован",

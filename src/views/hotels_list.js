@@ -5,6 +5,23 @@ import { escapeHtml } from "../util.js";
 const newBtnHtml = () =>
   `<p><a href="#/hotel/new" class="primary" style="padding:10px 16px;background:var(--accent);color:var(--accent-text);border-radius:4px;text-decoration:none;display:inline-block">${t("hotels.new")}</a></p>`;
 
+function cardHtml(h) {
+  const photo = (h.photos && h.photos[0]) || "";
+  const photoHtml = photo
+    ? `<div class="hotel-thumb" style="background-image:url('${escapeHtml(photo)}')"></div>`
+    : `<div class="hotel-thumb hotel-thumb-empty"></div>`;
+  return `
+    <div class="card hotel-row">
+      ${photoHtml}
+      <div class="hotel-row-body">
+        <h3>${escapeHtml(h.name_ru)}</h3>
+        <div class="meta">${escapeHtml(h.city)}${h.address ? " · " + escapeHtml(h.address) : ""}</div>
+        <span class="status-pill ${h.status}">${t("hotels.status." + h.status)}</span>
+      </div>
+      <a class="hotel-edit-btn" href="#/hotel/${h.id}" title="${t("hotels.edit")}" aria-label="${t("hotels.edit")}">⚙</a>
+    </div>`;
+}
+
 export async function renderHotelsList() {
   const app = document.getElementById("app");
   app.innerHTML = `<h1>${t("hotels.title")}</h1>
@@ -17,18 +34,7 @@ export async function renderHotelsList() {
       list.innerHTML = `<p class="muted">${t("hotels.empty")}</p>`;
       return;
     }
-    list.innerHTML = hotels
-      .map(
-        (h) => `
-        <a class="card-link" href="#/hotel/${h.id}" style="text-decoration:none;color:inherit">
-          <div class="card">
-            <h3>${escapeHtml(h.name_ru)}</h3>
-            <div class="meta">${escapeHtml(h.city)}${h.address ? " · " + escapeHtml(h.address) : ""}</div>
-            <span class="status-pill ${h.status}">${t("hotels.status." + h.status)}</span>
-          </div>
-        </a>`,
-      )
-      .join("");
+    list.innerHTML = hotels.map(cardHtml).join("");
   } catch (e) {
     document.getElementById("list").innerHTML =
       `<div class="error">${t("app.error", { msg: e.message })}</div>`;
