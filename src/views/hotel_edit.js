@@ -16,12 +16,27 @@ const FIELDS = [
   ["lng", "hotel.lng", "input-number"],
 ];
 
+const TABS = ["status", "share", "description", "rooms"];
+
+let _state = { hotel: null, rooms: [], active: "status" };
+
 function headerHtml(title) {
   return `
     <div class="form-header">
       <a class="back-btn" href="#/" aria-label="${t("app.back")}">←</a>
       <h1 class="form-title">${title}</h1>
     </div>`;
+}
+
+function tabsBarHtml() {
+  return `
+    <div class="tabs">
+      ${TABS.map((name) =>
+        `<button class="tab" data-tab="${name}">${t("edit.section." + name)}</button>`
+      ).join("")}
+    </div>
+    <div id="tab-body"></div>
+  `;
 }
 
 function descriptionFormHtml(hotel) {
@@ -46,74 +61,6 @@ function descriptionFormHtml(hotel) {
   `;
 }
 
-function statusSectionHtml(hotel) {
-  return `
-    <details class="section" open>
-      <summary>${t("edit.section.status")}</summary>
-      <div class="section-body">
-        <p>
-          <span class="status-pill ${hotel.status}">${t("hotels.status." + hotel.status)}</span>
-          ${hotel.status !== "published"
-            ? `<button class="secondary" id="btn-pub">${t("hotel.publish")}</button>`
-            : `<button class="secondary" id="btn-unpub">${t("hotel.unpublish")}</button>`}
-          <button class="danger" id="btn-del">${t("app.delete")}</button>
-        </p>
-      </div>
-    </details>
-  `;
-}
-
-function shareSectionHtml(hotel) {
-  return `
-    <details class="section">
-      <summary>${t("edit.section.share")}</summary>
-      <div class="section-body">
-        <div class="form-row">
-          <label>${t("hotel.share.web")}</label>
-          <input id="share-web" readonly value="https://book.dev.raftforge.art/#/hotel/${hotel.id}" />
-        </div>
-        <div class="form-row">
-          <label>${t("hotel.share.tg_start")}</label>
-          <input id="share-tg-start" readonly value="https://t.me/rforge_stay_bot?start=hotel_${hotel.id}" />
-        </div>
-        <div class="form-row">
-          <label>${t("hotel.share.tg_startapp")}</label>
-          <input id="share-tg-app" readonly value="https://t.me/rforge_stay_bot?startapp=hotel_${hotel.id}" />
-        </div>
-        <div class="row-actions">
-          <button class="secondary" id="btn-copy-web">${t("hotel.share.copy_web")}</button>
-          <button class="secondary" id="btn-copy-tg-start">${t("hotel.share.copy_tg_start")}</button>
-          <button class="secondary" id="btn-copy-tg-app">${t("hotel.share.copy_tg_startapp")}</button>
-        </div>
-        <div id="copy-toast" class="success" style="display:none">${t("hotel.share.copied")}</div>
-      </div>
-    </details>
-  `;
-}
-
-function descriptionSectionHtml(hotel) {
-  return `
-    <details class="section">
-      <summary>${t("edit.section.description")}</summary>
-      <div class="section-body">
-        ${descriptionFormHtml(hotel)}
-      </div>
-    </details>
-  `;
-}
-
-function roomsSectionHtml(hotelId) {
-  return `
-    <details class="section">
-      <summary>${t("edit.section.rooms")}</summary>
-      <div class="section-body">
-        <div id="rooms"></div>
-        <a href="#/room/${hotelId}/new" class="secondary" style="display:inline-block;padding:8px 14px;text-decoration:none;border:1px solid var(--accent);border-radius:4px;color:var(--accent);background:var(--surface);margin-top:8px">${t("hotel.add_room")}</a>
-      </div>
-    </details>
-  `;
-}
-
 export async function renderHotelEdit({ id }) {
   const isNew = id === "new";
   const app = document.getElementById("app");
@@ -128,11 +75,9 @@ export async function renderHotelEdit({ id }) {
     return;
   }
 
-  let hotel = null;
-  let rooms = [];
   try {
-    hotel = await api.getHotel(id);
-    rooms = await api.listRooms(id);
+    _state.hotel = await api.getHotel(id);
+    _state.rooms = await api.listRooms(id);
   } catch (e) {
     app.innerHTML = `<div class="error">${t("app.error", { msg: e.message })}</div>`;
     return;
@@ -140,13 +85,37 @@ export async function renderHotelEdit({ id }) {
 
   app.innerHTML = `
     ${headerHtml(t("hotel.title.edit"))}
-    ${statusSectionHtml(hotel)}
-    ${shareSectionHtml(hotel)}
-    ${descriptionSectionHtml(hotel)}
-    ${roomsSectionHtml(id)}
+    ${tabsBarHtml()}
   `;
+  document.querySelectorAll(".tab").forEach((b) => {
+    b.onclick = () => switchTab(b.dataset.tab, id);
+  });
+  switchTab(_state.active, id);
+}
 
-  // Status section wiring.
+function switchTab(name, id) {
+  _state.active = name;
+  document.querySelectorAll(".tab").forEach((b) =>
+    b.classList.toggle("active", b.dataset.tab === name),
+  );
+  const body = document.getElementById("tab-body");
+  if (name === "status") return renderStatusTab(body, id);
+  if (name === "share") return renderShareTab(body);
+  if (name === "description") return renderDescriptionTab(body, id);
+  if (name === "rooms") return renderRoomsTab(body, id);
+}
+
+function renderStatusTab(body, id) {
+  const h = _state.hotel;
+  body.innerHTML = `
+    <p>
+      <span class="status-pill ${h.status}">${t("hotels.status." + h.status)}</span>
+      ${h.status !== "published"
+        ? `<button class="secondary" id="btn-pub">${t("hotel.publish")}</button>`
+        : `<button class="secondary" id="btn-unpub">${t("hotel.unpublish")}</button>`}
+      <button class="danger" id="btn-del">${t("app.delete")}</button>
+    </p>
+  `;
   document.getElementById("btn-pub")?.addEventListener("click", () => statusChange(id, "published"));
   document.getElementById("btn-unpub")?.addEventListener("click", () => statusChange(id, "draft"));
   document.getElementById("btn-del").onclick = async () => {
@@ -158,8 +127,30 @@ export async function renderHotelEdit({ id }) {
       alert(e.message);
     }
   };
+}
 
-  // Share section wiring.
+function renderShareTab(body) {
+  const h = _state.hotel;
+  body.innerHTML = `
+    <div class="form-row">
+      <label>${t("hotel.share.web")}</label>
+      <input id="share-web" readonly value="https://book.dev.raftforge.art/#/hotel/${h.id}" />
+    </div>
+    <div class="form-row">
+      <label>${t("hotel.share.tg_start")}</label>
+      <input id="share-tg-start" readonly value="https://t.me/rforge_stay_bot?start=hotel_${h.id}" />
+    </div>
+    <div class="form-row">
+      <label>${t("hotel.share.tg_startapp")}</label>
+      <input id="share-tg-app" readonly value="https://t.me/rforge_stay_bot?startapp=hotel_${h.id}" />
+    </div>
+    <div class="row-actions">
+      <button class="secondary" id="btn-copy-web">${t("hotel.share.copy_web")}</button>
+      <button class="secondary" id="btn-copy-tg-start">${t("hotel.share.copy_tg_start")}</button>
+      <button class="secondary" id="btn-copy-tg-app">${t("hotel.share.copy_tg_startapp")}</button>
+    </div>
+    <div id="copy-toast" class="success" style="display:none">${t("hotel.share.copied")}</div>
+  `;
   const copyTo = (selector) => {
     const el = document.querySelector(selector);
     el.select();
@@ -168,15 +159,22 @@ export async function renderHotelEdit({ id }) {
     toast.style.display = "block";
     setTimeout(() => (toast.style.display = "none"), 1500);
   };
-  document.getElementById("btn-copy-web")?.addEventListener("click", () => copyTo("#share-web"));
-  document.getElementById("btn-copy-tg-start")?.addEventListener("click", () => copyTo("#share-tg-start"));
-  document.getElementById("btn-copy-tg-app")?.addEventListener("click", () => copyTo("#share-tg-app"));
+  document.getElementById("btn-copy-web").onclick = () => copyTo("#share-web");
+  document.getElementById("btn-copy-tg-start").onclick = () => copyTo("#share-tg-start");
+  document.getElementById("btn-copy-tg-app").onclick = () => copyTo("#share-tg-app");
+}
 
-  // Description form wiring.
+function renderDescriptionTab(body, id) {
+  body.innerHTML = descriptionFormHtml(_state.hotel);
   wireSaveHandler(false, id);
+}
 
-  // Rooms section.
-  renderRooms(rooms, id);
+function renderRoomsTab(body, id) {
+  body.innerHTML = `
+    <div id="rooms"></div>
+    <a href="#/room/${id}/new" class="secondary" style="display:inline-block;padding:8px 14px;text-decoration:none;border:1px solid var(--accent);border-radius:4px;color:var(--accent);background:var(--surface);margin-top:8px">${t("hotel.add_room")}</a>
+  `;
+  renderRoomsList(_state.rooms, id);
 }
 
 function wireSaveHandler(isNew, id) {
@@ -202,7 +200,8 @@ function wireSaveHandler(isNew, id) {
         const created = await api.createHotel(payload);
         navigate("/hotel/" + created.id);
       } else {
-        await api.updateHotel(id, payload);
+        const updated = await api.updateHotel(id, payload);
+        _state.hotel = updated;
         document.getElementById("form-err").innerHTML = `<span class="success">${t("avail.saved")}</span>`;
       }
     } catch (e) {
@@ -213,14 +212,15 @@ function wireSaveHandler(isNew, id) {
 
 async function statusChange(id, status) {
   try {
-    await api.updateHotel(id, { status });
-    location.reload();
+    const updated = await api.updateHotel(id, { status });
+    _state.hotel = updated;
+    switchTab("status", id);
   } catch (e) {
     alert(e.message);
   }
 }
 
-function renderRooms(rooms, hotelId) {
+function renderRoomsList(rooms, hotelId) {
   const el = document.getElementById("rooms");
   if (!rooms.length) {
     el.innerHTML = `<p class="muted">— нет —</p>`;
