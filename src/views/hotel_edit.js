@@ -50,11 +50,16 @@ export async function renderHotelEdit({ id }) {
         <input id="share-web" readonly value="https://book.dev.raftforge.art/#/hotel/${hotel.id}" />
       </div>
       <div class="form-row">
-        <label>${t("hotel.share.tg")}</label>
-        <input id="share-tg" readonly value="https://t.me/rforge_stay_bot?startapp=hotel_${hotel.id}" />
+        <label>${t("hotel.share.tg_start")}</label>
+        <input id="share-tg-start" readonly value="https://t.me/rforge_stay_bot?start=hotel_${hotel.id}" />
+      </div>
+      <div class="form-row">
+        <label>${t("hotel.share.tg_startapp")}</label>
+        <input id="share-tg-app" readonly value="https://t.me/rforge_stay_bot?startapp=hotel_${hotel.id}" />
       </div>
       <button class="secondary" id="btn-copy-web">${t("hotel.share.copy_web")}</button>
-      <button class="secondary" id="btn-copy-tg">${t("hotel.share.copy_tg")}</button>
+      <button class="secondary" id="btn-copy-tg-start">${t("hotel.share.copy_tg_start")}</button>
+      <button class="secondary" id="btn-copy-tg-app">${t("hotel.share.copy_tg_startapp")}</button>
       <div id="copy-toast" class="success" style="display:none">${t("hotel.share.copied")}</div>
     </div>` : ""}
     <form id="form">
@@ -126,7 +131,8 @@ export async function renderHotelEdit({ id }) {
       setTimeout(() => (toast.style.display = "none"), 1500);
     };
     document.getElementById("btn-copy-web")?.addEventListener("click", () => copyTo("#share-web"));
-    document.getElementById("btn-copy-tg")?.addEventListener("click", () => copyTo("#share-tg"));
+    document.getElementById("btn-copy-tg-start")?.addEventListener("click", () => copyTo("#share-tg-start"));
+    document.getElementById("btn-copy-tg-app")?.addEventListener("click", () => copyTo("#share-tg-app"));
     document.getElementById("btn-del").onclick = async () => {
       if (!confirm(t("hotel.delete_confirm"))) return;
       try {
