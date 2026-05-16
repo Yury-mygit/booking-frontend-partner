@@ -24,6 +24,10 @@
 
   "hotel.title.new": "Жаңы мейманкана",
   "hotel.title.edit": "Мейманкананы оңдоо",
+  "edit.section.status": "Жарыялоо статусу",
+  "edit.section.share": "Шилтемелер",
+  "edit.section.description": "Сүрөттөмөсү",
+  "edit.section.rooms": "Бөлмөлөр",
   "hotel.name_ru": "Аты (рус)",
   "hotel.name_ky": "Аты (кырг)",
   "hotel.name_en": "Аты (англ)",

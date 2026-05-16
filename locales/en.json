@@ -24,6 +24,10 @@
 
   "hotel.title.new": "New hotel",
   "hotel.title.edit": "Edit hotel",
+  "edit.section.status": "Publish status",
+  "edit.section.share": "Links",
+  "edit.section.description": "Description",
+  "edit.section.rooms": "Rooms",
   "hotel.name_ru": "Name (ru)",
   "hotel.name_ky": "Name (ky)",
   "hotel.name_en": "Name (en)",

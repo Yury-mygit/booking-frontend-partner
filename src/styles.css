@@ -106,6 +106,51 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
 }
 .hotel-edit-btn:hover { color: var(--accent); border-color: var(--accent); }
 
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.back-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none;
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.form-title { margin: 0; font-size: 18px; flex: 1; }
+
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.section > summary {
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  list-style: none;
+  user-select: none;
+}
+.section > summary::-webkit-details-marker { display: none; }
+.section > summary::after {
+  content: "▸";
+  float: right;
+  transition: transform 0.15s;
+  color: var(--text-muted);
+}
+.section[open] > summary::after { transform: rotate(90deg); }
+.section-body { padding: 0 14px 14px; }
+
 .status-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
 .status-pill.draft { background: var(--pill-draft-bg); color: var(--pill-draft-text); }
 .status-pill.published { background: var(--pill-published-bg); color: var(--pill-published-text); }
