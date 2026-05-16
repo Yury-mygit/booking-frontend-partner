@@ -40,6 +40,12 @@
   "hotel.delete_confirm": "Удалить отель? (только если нет броней)",
   "hotel.rooms": "Комнаты",
   "hotel.add_room": "+ Добавить комнату",
+  "hotel.share.title": "Ссылки для Instagram",
+  "hotel.share.web": "Веб-ссылка (откроется в браузере, потом → Telegram)",
+  "hotel.share.tg": "Telegram-ссылка (откроется сразу в Telegram)",
+  "hotel.share.copy_web": "Копировать веб-ссылку",
+  "hotel.share.copy_tg": "Копировать TG-ссылку",
+  "hotel.share.copied": "Скопировано",
 
   "room.title.new": "Новая комната",
   "room.title.edit": "Редактирование комнаты",

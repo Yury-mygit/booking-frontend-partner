@@ -42,7 +42,21 @@ export async function renderHotelEdit({ id }) {
         ? `<button class="secondary" id="btn-pub">${t("hotel.publish")}</button>`
         : `<button class="secondary" id="btn-unpub">${t("hotel.unpublish")}</button>`}
       <button class="danger" id="btn-del">${t("app.delete")}</button>
-    </p>` : ""}
+    </p>
+    <div class="card" style="background:#f0f7ff">
+      <div class="meta" style="margin-bottom:6px"><b>${t("hotel.share.title")}</b></div>
+      <div class="form-row">
+        <label>${t("hotel.share.web")}</label>
+        <input id="share-web" readonly value="https://book.dev.raftforge.art/#/hotel/${hotel.id}" />
+      </div>
+      <div class="form-row">
+        <label>${t("hotel.share.tg")}</label>
+        <input id="share-tg" readonly value="https://t.me/rforge_stay_bot?startapp=hotel_${hotel.id}" />
+      </div>
+      <button class="secondary" id="btn-copy-web">${t("hotel.share.copy_web")}</button>
+      <button class="secondary" id="btn-copy-tg">${t("hotel.share.copy_tg")}</button>
+      <div id="copy-toast" class="success" style="display:none">${t("hotel.share.copied")}</div>
+    </div>` : ""}
     <form id="form">
       ${FIELDS.map(([k, key, kind]) => {
         const v = hotel?.[k] ?? "";
@@ -103,6 +117,16 @@ export async function renderHotelEdit({ id }) {
   if (!isNew) {
     document.getElementById("btn-pub")?.addEventListener("click", () => statusChange(id, "published"));
     document.getElementById("btn-unpub")?.addEventListener("click", () => statusChange(id, "draft"));
+    const copyTo = (selector) => {
+      const el = document.querySelector(selector);
+      el.select();
+      navigator.clipboard?.writeText(el.value).catch(() => document.execCommand("copy"));
+      const toast = document.getElementById("copy-toast");
+      toast.style.display = "block";
+      setTimeout(() => (toast.style.display = "none"), 1500);
+    };
+    document.getElementById("btn-copy-web")?.addEventListener("click", () => copyTo("#share-web"));
+    document.getElementById("btn-copy-tg")?.addEventListener("click", () => copyTo("#share-tg"));
     document.getElementById("btn-del").onclick = async () => {
       if (!confirm(t("hotel.delete_confirm"))) return;
       try {
