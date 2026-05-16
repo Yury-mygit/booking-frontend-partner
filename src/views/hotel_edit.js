@@ -134,15 +134,15 @@ function renderShareTab(body) {
   body.innerHTML = `
     <div class="form-row">
       <label>${t("hotel.share.web")}</label>
-      <input id="share-web" readonly value="https://book.dev.raftforge.art/#/hotel/${h.id}" />
+      <input id="share-web" readonly value="https://book.dev.raftforge.art/?hotel=${h.slug}" />
     </div>
     <div class="form-row">
       <label>${t("hotel.share.tg_start")}</label>
-      <input id="share-tg-start" readonly value="https://t.me/rforge_stay_bot?start=hotel_${h.id}" />
+      <input id="share-tg-start" readonly value="https://t.me/rforge_stay_bot?start=hotel_${h.slug}" />
     </div>
     <div class="form-row">
       <label>${t("hotel.share.tg_startapp")}</label>
-      <input id="share-tg-app" readonly value="https://t.me/rforge_stay_bot?startapp=hotel_${h.id}" />
+      <input id="share-tg-app" readonly value="https://t.me/rforge_stay_bot?startapp=hotel_${h.slug}" />
     </div>
     <div class="row-actions">
       <button class="secondary" id="btn-copy-web">${t("hotel.share.copy_web")}</button>
