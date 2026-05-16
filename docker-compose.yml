@@ -1,0 +1,18 @@
+name: booking_partner
+
+services:
+  app:
+    build: .
+    container_name: booking_partner_dev
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5189:5189"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - shared
+
+networks:
+  shared:
+    external: true
