@@ -27,10 +27,10 @@ export async function renderAvailability({ hotelId, roomId }) {
     <h1>${t("avail.title", { room: escapeHtml(room.name_ru) })}</h1>
     <div class="muted">Цена по умолчанию: ${room.price_kgs} сом/ночь</div>
     <div class="cal-legend">
-      <span><i style="background:#fff"></i>${t("avail.legend.free")}</span>
-      <span><i style="background:#ffcdd2"></i>${t("avail.legend.blocked")}</span>
-      <span><i style="background:#c8e6c9"></i>${t("avail.legend.booked")}</span>
-      <span><i style="background:#fff;border:2px solid #1a73e8"></i>${t("avail.legend.priced")}</span>
+      <span><i style="background:var(--cal-free)"></i>${t("avail.legend.free")}</span>
+      <span><i style="background:var(--cal-blocked)"></i>${t("avail.legend.blocked")}</span>
+      <span><i style="background:var(--cal-booked)"></i>${t("avail.legend.booked")}</span>
+      <span><i style="background:var(--cal-free);border:2px solid var(--accent)"></i>${t("avail.legend.priced")}</span>
     </div>
     <div class="cal-grid" id="cal"></div>
     <div id="modal-mount"></div>

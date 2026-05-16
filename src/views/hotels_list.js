@@ -5,7 +5,7 @@ import { escapeHtml } from "../util.js";
 export async function renderHotelsList() {
   const app = document.getElementById("app");
   app.innerHTML = `<h1>${t("hotels.title")}</h1>
-    <p><a href="#/hotel/new" class="primary" style="padding:10px 16px;background:#1a73e8;color:#fff;border-radius:4px;text-decoration:none;display:inline-block">${t("hotels.new")}</a></p>
+    <p><a href="#/hotel/new" class="primary" style="padding:10px 16px;background:var(--accent);color:var(--accent-text);border-radius:4px;text-decoration:none;display:inline-block">${t("hotels.new")}</a></p>
     <div id="list">${t("app.loading")}</div>`;
   try {
     const hotels = await api.listHotels();

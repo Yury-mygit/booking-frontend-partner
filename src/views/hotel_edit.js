@@ -43,7 +43,7 @@ export async function renderHotelEdit({ id }) {
         : `<button class="secondary" id="btn-unpub">${t("hotel.unpublish")}</button>`}
       <button class="danger" id="btn-del">${t("app.delete")}</button>
     </p>
-    <div class="card" style="background:#f0f7ff">
+    <div class="card" style="background:var(--surface-info)">
       <div class="meta" style="margin-bottom:6px"><b>${t("hotel.share.title")}</b></div>
       <div class="form-row">
         <label>${t("hotel.share.web")}</label>
@@ -83,7 +83,7 @@ export async function renderHotelEdit({ id }) {
     ${!isNew ? `
       <h2>${t("hotel.rooms")}</h2>
       <div id="rooms"></div>
-      <a href="#/room/${id}/new" class="secondary" style="display:inline-block;padding:8px 14px;text-decoration:none;border:1px solid #1a73e8;border-radius:4px;color:#1a73e8">${t("hotel.add_room")}</a>
+      <a href="#/room/${id}/new" class="secondary" style="display:inline-block;padding:8px 14px;text-decoration:none;border:1px solid var(--accent);border-radius:4px;color:var(--accent);background:var(--surface)">${t("hotel.add_room")}</a>
     ` : ""}
   `;
 
