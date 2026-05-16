@@ -73,6 +73,7 @@
   "room.name_en": "Название (англ)",
   "room.description_ru": "Описание (рус)",
   "room.capacity": "Вместимость",
+  "room.beds": "Кроватей",
   "room.floor": "Этаж",
   "room.price_kgs": "Цена за ночь (сом)",
   "room.availability": "Календарь",

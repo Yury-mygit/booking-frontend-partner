@@ -6,6 +6,7 @@ import { escapeHtml } from "../util.js";
 const MAIN_FIELDS = [
   ["name_ru", "room.name_ru", "input"],
   ["capacity", "room.capacity", "input-number"],
+  ["beds", "room.beds", "input-number"],
   ["price_kgs", "room.price_kgs", "input-number"],
   ["floor", "room.floor", "input-number"],
 ];
