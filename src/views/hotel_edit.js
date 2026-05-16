@@ -16,7 +16,7 @@ const FIELDS = [
   ["lng", "hotel.lng", "input-number"],
 ];
 
-const TABS = ["status", "share", "description", "photos", "rooms"];
+const TABS = ["status", "share", "description", "photos"];
 
 let _state = { hotel: null, rooms: [], active: "status" };
 
@@ -77,7 +77,6 @@ export async function renderHotelEdit({ id }) {
 
   try {
     _state.hotel = await api.getHotel(id);
-    _state.rooms = await api.listRooms(id);
   } catch (e) {
     app.innerHTML = `<div class="error">${t("app.error", { msg: e.message })}</div>`;
     return;
@@ -103,7 +102,6 @@ function switchTab(name, id) {
   if (name === "share") return renderShareTab(body);
   if (name === "description") return renderDescriptionTab(body, id);
   if (name === "photos") return renderPhotosTab(body, id);
-  if (name === "rooms") return renderRoomsTab(body, id);
 }
 
 function renderStatusTab(body, id) {
@@ -259,14 +257,6 @@ async function uploadPhoto(fileInput, hotelId) {
   }
 }
 
-function renderRoomsTab(body, id) {
-  body.innerHTML = `
-    <div id="rooms"></div>
-    <a href="#/room/${id}/new" class="secondary" style="display:inline-block;padding:8px 14px;text-decoration:none;border:1px solid var(--accent);border-radius:4px;color:var(--accent);background:var(--surface);margin-top:8px">${t("hotel.add_room")}</a>
-  `;
-  renderRoomsList(_state.rooms, id);
-}
-
 function wireSaveHandler(isNew, id) {
   document.getElementById("btn-save").onclick = async (e) => {
     e.preventDefault();
@@ -310,23 +300,3 @@ async function statusChange(id, status) {
   }
 }
 
-function renderRoomsList(rooms, hotelId) {
-  const el = document.getElementById("rooms");
-  if (!rooms.length) {
-    el.innerHTML = `<p class="muted">— нет —</p>`;
-    return;
-  }
-  el.innerHTML = rooms
-    .map(
-      (r) => `
-      <div class="card">
-        <h3>${escapeHtml(r.name_ru)}</h3>
-        <div class="meta">capacity=${r.capacity}, ${r.price_kgs} сом/ночь</div>
-        <div class="row-actions">
-          <a class="secondary" style="text-decoration:none;display:inline-block;padding:6px 10px" href="#/room/${hotelId}/${r.id}">edit</a>
-          <a class="secondary" style="text-decoration:none;display:inline-block;padding:6px 10px" href="#/room/${hotelId}/${r.id}/availability">${t("room.availability")}</a>
-        </div>
-      </div>`,
-    )
-    .join("");
-}

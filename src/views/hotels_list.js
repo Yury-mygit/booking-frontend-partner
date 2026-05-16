@@ -18,7 +18,10 @@ function cardHtml(h) {
         <div class="meta">${escapeHtml(h.city)}${h.address ? " · " + escapeHtml(h.address) : ""}</div>
         <span class="status-pill ${h.status}">${t("hotels.status." + h.status)}</span>
       </div>
-      <a class="hotel-edit-btn" href="#/hotel/${h.id}" title="${t("hotels.edit")}" aria-label="${t("hotels.edit")}">⚙</a>
+      <div class="hotel-actions">
+        <a class="hotel-edit-btn" href="#/hotel/${h.id}" title="${t("hotels.edit")}" aria-label="${t("hotels.edit")}">⚙</a>
+        <a class="hotel-edit-btn" href="#/hotel/${h.id}/rooms" title="${t("hotels.rooms_btn")}" aria-label="${t("hotels.rooms_btn")}">🛏</a>
+      </div>
     </div>`;
 }
 

@@ -9,6 +9,7 @@ import { renderBookings } from "./views/bookings.js";
 import { renderHotelEdit } from "./views/hotel_edit.js";
 import { renderHotelsList } from "./views/hotels_list.js";
 import { renderRoomEdit } from "./views/room_edit.js";
+import { renderRoomsList } from "./views/rooms_list.js";
 
 initTg();
 applyTheme();
@@ -22,6 +23,7 @@ window.addEventListener("langchange", () => {
 });
 
 route("/", renderHotelsList);
+route("/hotel/{hotelId}/rooms", renderRoomsList);
 route("/hotel/{id}", renderHotelEdit);
 route("/room/{hotelId}/{roomId}/availability", renderAvailability);
 route("/room/{hotelId}/{roomId}", renderRoomEdit);

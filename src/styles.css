@@ -85,12 +85,17 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
 .hotel-thumb-empty {
   background-image: linear-gradient(135deg, var(--surface-soft) 0%, var(--border-soft) 100%);
 }
-.hotel-row-body { flex: 1; min-width: 0; padding-right: 36px; }
+.hotel-row-body { flex: 1; min-width: 0; padding-right: 44px; }
 .hotel-row-body h3 { margin: 0 0 4px; }
-.hotel-edit-btn {
+.hotel-actions {
   position: absolute;
   top: 8px;
   right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hotel-edit-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;

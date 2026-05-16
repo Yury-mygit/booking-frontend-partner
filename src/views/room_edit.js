@@ -3,78 +3,241 @@ import { t } from "../i18n.js";
 import { navigate } from "../router.js";
 import { escapeHtml } from "../util.js";
 
-const FIELDS = [
+const MAIN_FIELDS = [
   ["name_ru", "room.name_ru", "input"],
-  ["name_ky", "room.name_ky", "input"],
-  ["name_en", "room.name_en", "input"],
-  ["description_ru", "room.description_ru", "textarea"],
   ["capacity", "room.capacity", "input-number"],
   ["price_kgs", "room.price_kgs", "input-number"],
 ];
 
+const DESCRIPTION_FIELDS = [
+  ["name_ky", "room.name_ky", "input"],
+  ["name_en", "room.name_en", "input"],
+  ["description_ru", "room.description_ru", "textarea"],
+  ["description_ky", "room.description_ky", "textarea"],
+  ["description_en", "room.description_en", "textarea"],
+];
+
+const TABS = ["main", "description", "photos"];
+
+let _state = { hotelId: null, roomId: null, isNew: false, room: null, active: "main" };
+
+function headerHtml(title, hotelId) {
+  return `
+    <div class="form-header">
+      <a class="back-btn" href="#/hotel/${hotelId}/rooms" aria-label="${t("app.back")}">←</a>
+      <h1 class="form-title">${title}</h1>
+    </div>`;
+}
+
+function fieldHtml([k, key, kind], value) {
+  if (kind === "textarea") {
+    return `<div class="form-row"><label>${t(key)}</label>
+      <textarea name="${k}">${escapeHtml(value)}</textarea></div>`;
+  }
+  const inputType = kind === "input-number" ? "number" : "text";
+  return `<div class="form-row"><label>${t(key)}</label>
+    <input type="${inputType}" name="${k}" value="${escapeHtml(value)}" /></div>`;
+}
+
 export async function renderRoomEdit({ hotelId, roomId }) {
   const isNew = roomId === "new";
+  _state = { hotelId, roomId, isNew, room: null, active: "main" };
+
   const app = document.getElementById("app");
   app.innerHTML = t("app.loading");
 
-  let room = null;
-  if (!isNew) {
-    try {
-      room = await api.getRoom(hotelId, roomId);
-    } catch (e) {
-      app.innerHTML = `<div class="error">${t("app.error", { msg: e.message })}</div>`;
-      return;
-    }
+  if (isNew) {
+    app.innerHTML = `
+      ${headerHtml(t("room.title.new"), hotelId)}
+      ${mainFormHtml(null)}
+    `;
+    wireSaveHandler();
+    return;
+  }
+
+  try {
+    _state.room = await api.getRoom(hotelId, roomId);
+  } catch (e) {
+    app.innerHTML = `<div class="error">${t("app.error", { msg: e.message })}</div>`;
+    return;
   }
 
   app.innerHTML = `
-    <p><a href="#/hotel/${hotelId}">${t("app.back")}</a></p>
-    <h1>${isNew ? t("room.title.new") : t("room.title.edit")}</h1>
+    ${headerHtml(t("room.title.edit"), hotelId)}
+    <div class="tabs">
+      ${TABS.map((name) =>
+        `<button class="tab" data-tab="${name}">${t("edit.section." + name)}</button>`
+      ).join("")}
+    </div>
+    <div id="tab-body"></div>
+  `;
+  document.querySelectorAll(".tab").forEach((b) => {
+    b.onclick = () => switchTab(b.dataset.tab);
+  });
+  switchTab(_state.active);
+}
+
+function switchTab(name) {
+  _state.active = name;
+  document.querySelectorAll(".tab").forEach((b) =>
+    b.classList.toggle("active", b.dataset.tab === name),
+  );
+  const body = document.getElementById("tab-body");
+  if (name === "main") body.innerHTML = mainFormHtml(_state.room);
+  else if (name === "description") body.innerHTML = descriptionFormHtml(_state.room);
+  else if (name === "photos") return renderPhotosTab(body);
+  wireSaveHandler();
+}
+
+function mainFormHtml(room) {
+  return `
     <form id="form">
-      ${FIELDS.map(([k, key, kind]) => {
-        const v = room?.[k] ?? (kind === "input-number" ? "" : "");
-        if (kind === "textarea") {
-          return `<div class="form-row"><label>${t(key)}</label>
-            <textarea name="${k}">${escapeHtml(v)}</textarea></div>`;
-        }
-        const inputType = kind === "input-number" ? "number" : "text";
-        return `<div class="form-row"><label>${t(key)}</label>
-          <input type="${inputType}" name="${k}" value="${escapeHtml(v)}" /></div>`;
-      }).join("")}
+      ${MAIN_FIELDS.map(([k, key, kind]) =>
+        fieldHtml([k, key, kind], room?.[k] ?? "")
+      ).join("")}
       <button class="primary full" id="btn-save">${t("app.save")}</button>
-      ${!isNew ? `<p style="margin-top:10px"><button class="danger" id="btn-del">${t("app.delete")}</button></p>` : ""}
+      ${!_state.isNew ? `<p style="margin-top:10px"><button class="danger" id="btn-del">${t("app.delete")}</button></p>` : ""}
+      ${!_state.isNew ? `<p><a class="secondary" style="text-decoration:none;display:inline-block;padding:8px 14px;border:1px solid var(--accent);border-radius:4px;color:var(--accent);background:var(--surface)" href="#/room/${_state.hotelId}/${_state.roomId}/availability">${t("room.availability")}</a></p>` : ""}
       <div id="err" class="error"></div>
     </form>
   `;
+}
 
-  document.getElementById("btn-save").onclick = async (e) => {
+function descriptionFormHtml(room) {
+  return `
+    <form id="form">
+      ${DESCRIPTION_FIELDS.map(([k, key, kind]) =>
+        fieldHtml([k, key, kind], room?.[k] ?? "")
+      ).join("")}
+      <button class="primary full" id="btn-save">${t("app.save")}</button>
+      <div id="err" class="error"></div>
+    </form>
+  `;
+}
+
+function renderPhotosTab(body) {
+  const photos = _state.room.photos || [];
+  body.innerHTML = `
+    <div id="photos-list">
+      ${photos.length === 0
+        ? `<p class="muted">${t("photos.empty")}</p>`
+        : photos
+            .map(
+              (url, i) => `
+              <div class="photo-row">
+                <img class="photo-thumb" src="${escapeHtml(url)}" alt="" />
+                <div class="photo-meta">
+                  ${i === 0 ? `<span class="status-pill published">${t("photos.main")}</span>` : ""}
+                  <div class="meta" style="word-break:break-all">${escapeHtml(url)}</div>
+                </div>
+                <div class="photo-actions">
+                  <button class="secondary" data-up="${i}" ${i === 0 ? "disabled" : ""}>${t("photos.up")}</button>
+                  <button class="secondary" data-down="${i}" ${i === photos.length - 1 ? "disabled" : ""}>${t("photos.down")}</button>
+                  <button class="danger" data-del="${escapeHtml(url)}">${t("photos.delete")}</button>
+                </div>
+              </div>`,
+            )
+            .join("")}
+    </div>
+    <div class="photo-upload">
+      <label class="meta">${t("photos.allowed")}</label>
+      <input type="file" id="photo-file" accept="image/jpeg,image/png,image/webp" />
+      <button class="primary" id="photo-upload-btn" disabled>${t("photos.upload")}</button>
+      <div id="photo-status" class="meta"></div>
+    </div>
+  `;
+
+  body.querySelectorAll("button[data-up]").forEach((b) => {
+    b.onclick = () => moveAndSave(Number(b.dataset.up), -1);
+  });
+  body.querySelectorAll("button[data-down]").forEach((b) => {
+    b.onclick = () => moveAndSave(Number(b.dataset.down), +1);
+  });
+  body.querySelectorAll("button[data-del]").forEach((b) => {
+    b.onclick = () => deletePhoto(b.dataset.del);
+  });
+
+  const fileInput = document.getElementById("photo-file");
+  const uploadBtn = document.getElementById("photo-upload-btn");
+  fileInput.onchange = () => {
+    uploadBtn.disabled = !fileInput.files || fileInput.files.length === 0;
+  };
+  uploadBtn.onclick = () => uploadPhoto(fileInput);
+}
+
+async function moveAndSave(index, delta) {
+  const photos = [...(_state.room.photos || [])];
+  const j = index + delta;
+  if (j < 0 || j >= photos.length) return;
+  [photos[index], photos[j]] = [photos[j], photos[index]];
+  try {
+    const res = await api.reorderRoomPhotos(_state.roomId, photos);
+    _state.room.photos = res.photos;
+    switchTab("photos");
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function deletePhoto(url) {
+  if (!confirm("?")) return;
+  try {
+    await api.deleteRoomPhoto(_state.roomId, url);
+    _state.room.photos = (_state.room.photos || []).filter((u) => u !== url);
+    switchTab("photos");
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function uploadPhoto(fileInput) {
+  const f = fileInput.files && fileInput.files[0];
+  if (!f) return;
+  const statusEl = document.getElementById("photo-status");
+  statusEl.textContent = t("photos.uploading");
+  try {
+    const res = await api.uploadRoomPhoto(_state.roomId, f);
+    _state.room.photos = res.photos;
+    switchTab("photos");
+  } catch (e) {
+    statusEl.innerHTML = `<span class="error">${escapeHtml(e.message)}</span>`;
+  }
+}
+
+function wireSaveHandler() {
+  const btn = document.getElementById("btn-save");
+  if (!btn) return;
+  btn.onclick = async (e) => {
     e.preventDefault();
     const form = document.getElementById("form");
     const payload = {};
-    for (const [k, , kind] of FIELDS) {
+    const activeFields = _state.active === "description" ? DESCRIPTION_FIELDS : MAIN_FIELDS;
+    for (const [k, , kind] of activeFields) {
       const raw = form[k].value.trim();
-      if (raw === "" && !isNew) { payload[k] = null; continue; }
+      if (raw === "" && !_state.isNew) { payload[k] = null; continue; }
       if (raw === "") continue;
       payload[k] = kind === "input-number" ? Number(raw) : raw;
     }
     try {
-      if (isNew) {
-        await api.createRoom(hotelId, payload);
+      if (_state.isNew) {
+        const r = await api.createRoom(_state.hotelId, payload);
+        navigate(`/room/${_state.hotelId}/${r.id}`);
       } else {
-        await api.updateRoom(hotelId, roomId, payload);
+        const updated = await api.updateRoom(_state.hotelId, _state.roomId, payload);
+        _state.room = updated;
+        document.getElementById("err").innerHTML = `<span class="success">${t("avail.saved")}</span>`;
       }
-      navigate("/hotel/" + hotelId);
     } catch (e) {
       document.getElementById("err").textContent = t("app.error", { msg: e.message });
     }
   };
 
-  document.getElementById("btn-del")?.addEventListener("click", async (e) => {
-    e.preventDefault();
+  document.getElementById("btn-del")?.addEventListener("click", async (ev) => {
+    ev.preventDefault();
     if (!confirm(t("room.delete_confirm"))) return;
     try {
-      await api.deleteRoom(hotelId, roomId);
-      navigate("/hotel/" + hotelId);
+      await api.deleteRoom(_state.hotelId, _state.roomId);
+      navigate(`/hotel/${_state.hotelId}/rooms`);
     } catch (e) {
       document.getElementById("err").textContent = t("app.error", { msg: e.message });
     }
