@@ -16,7 +16,7 @@ const FIELDS = [
   ["lng", "hotel.lng", "input-number"],
 ];
 
-const TABS = ["status", "share", "description", "rooms"];
+const TABS = ["status", "share", "description", "photos", "rooms"];
 
 let _state = { hotel: null, rooms: [], active: "status" };
 
@@ -102,6 +102,7 @@ function switchTab(name, id) {
   if (name === "status") return renderStatusTab(body, id);
   if (name === "share") return renderShareTab(body);
   if (name === "description") return renderDescriptionTab(body, id);
+  if (name === "photos") return renderPhotosTab(body, id);
   if (name === "rooms") return renderRoomsTab(body, id);
 }
 
@@ -167,6 +168,95 @@ function renderShareTab(body) {
 function renderDescriptionTab(body, id) {
   body.innerHTML = descriptionFormHtml(_state.hotel);
   wireSaveHandler(false, id);
+}
+
+function renderPhotosTab(body, id) {
+  const photos = _state.hotel.photos || [];
+  body.innerHTML = `
+    <div id="photos-list">
+      ${photos.length === 0
+        ? `<p class="muted">${t("photos.empty")}</p>`
+        : photos
+            .map(
+              (url, i) => `
+              <div class="photo-row">
+                <img class="photo-thumb" src="${escapeHtml(url)}" alt="" />
+                <div class="photo-meta">
+                  ${i === 0 ? `<span class="status-pill published">${t("photos.main")}</span>` : ""}
+                  <div class="meta" style="word-break:break-all">${escapeHtml(url)}</div>
+                </div>
+                <div class="photo-actions">
+                  <button class="secondary" data-up="${i}" ${i === 0 ? "disabled" : ""}>${t("photos.up")}</button>
+                  <button class="secondary" data-down="${i}" ${i === photos.length - 1 ? "disabled" : ""}>${t("photos.down")}</button>
+                  <button class="danger" data-del="${escapeHtml(url)}">${t("photos.delete")}</button>
+                </div>
+              </div>`,
+            )
+            .join("")}
+    </div>
+    <div class="photo-upload">
+      <label class="meta">${t("photos.allowed")}</label>
+      <input type="file" id="photo-file" accept="image/jpeg,image/png,image/webp" />
+      <button class="primary" id="photo-upload-btn" disabled>${t("photos.upload")}</button>
+      <div id="photo-status" class="meta"></div>
+    </div>
+  `;
+
+  body.querySelectorAll("button[data-up]").forEach((b) => {
+    b.onclick = () => moveAndSave(Number(b.dataset.up), -1, id);
+  });
+  body.querySelectorAll("button[data-down]").forEach((b) => {
+    b.onclick = () => moveAndSave(Number(b.dataset.down), +1, id);
+  });
+  body.querySelectorAll("button[data-del]").forEach((b) => {
+    b.onclick = () => deletePhoto(b.dataset.del, id);
+  });
+
+  const fileInput = document.getElementById("photo-file");
+  const uploadBtn = document.getElementById("photo-upload-btn");
+  fileInput.onchange = () => {
+    uploadBtn.disabled = !fileInput.files || fileInput.files.length === 0;
+  };
+  uploadBtn.onclick = () => uploadPhoto(fileInput, id);
+}
+
+async function moveAndSave(index, delta, hotelId) {
+  const photos = [...(_state.hotel.photos || [])];
+  const j = index + delta;
+  if (j < 0 || j >= photos.length) return;
+  [photos[index], photos[j]] = [photos[j], photos[index]];
+  try {
+    const res = await api.reorderPhotos(hotelId, photos);
+    _state.hotel.photos = res.photos;
+    switchTab("photos", hotelId);
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function deletePhoto(url, hotelId) {
+  if (!confirm(t("photos.delete") + " ?")) return;
+  try {
+    await api.deletePhoto(hotelId, url);
+    _state.hotel.photos = (_state.hotel.photos || []).filter((u) => u !== url);
+    switchTab("photos", hotelId);
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function uploadPhoto(fileInput, hotelId) {
+  const f = fileInput.files && fileInput.files[0];
+  if (!f) return;
+  const statusEl = document.getElementById("photo-status");
+  statusEl.textContent = t("photos.uploading");
+  try {
+    const res = await api.uploadPhoto(hotelId, f);
+    _state.hotel.photos = res.photos;
+    switchTab("photos", hotelId);
+  } catch (e) {
+    statusEl.innerHTML = `<span class="error">${escapeHtml(e.message)}</span>`;
+  }
 }
 
 function renderRoomsTab(body, id) {

@@ -67,6 +67,22 @@ export const api = {
   updateAvailability: (hid, rid, nights) =>
     call("PUT", `/p/hotels/${hid}/rooms/${rid}/availability`, { nights }),
 
+  // Photos
+  async uploadPhoto(hid, file) {
+    const fd = new FormData();
+    fd.append("file", file);
+    const headers = {};
+    if (_token) headers.Authorization = `Bearer ${_token}`;
+    const r = await fetch(`${BASE}/p/hotels/${hid}/photos`, { method: "POST", headers, body: fd });
+    const data = await r.json();
+    if (!r.ok) { const e = new Error(data.message || r.statusText); e.code = data.error; throw e; }
+    return data;
+  },
+  deletePhoto: (hid, url) =>
+    call("DELETE", `/p/hotels/${hid}/photos?url=${encodeURIComponent(url)}`),
+  reorderPhotos: (hid, urls) =>
+    call("PUT", `/p/hotels/${hid}/photos/reorder`, { urls }),
+
   // Bookings (incoming)
   listBookings: (statusFilter) =>
     call("GET", "/p/bookings" + (statusFilter ? `?status=${statusFilter}` : "")),

@@ -153,6 +153,36 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
   font-weight: 600;
 }
 
+.photo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.photo-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: var(--surface-soft);
+}
+.photo-meta { flex: 1; min-width: 0; font-size: 12px; }
+.photo-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.photo-actions button { padding: 4px 8px; font-size: 12px; min-width: 36px; }
+.photo-upload {
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+}
+.photo-upload input[type="file"] { display: block; margin: 6px 0; font-size: 13px; }
+
 .status-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
 .status-pill.draft { background: var(--pill-draft-bg); color: var(--pill-draft-text); }
 .status-pill.published { background: var(--pill-published-bg); color: var(--pill-published-text); }
