@@ -81,5 +81,8 @@
   "bookings.status.pending": "төлөмдү күтөт",
   "bookings.status.paid": "төлөнгөн",
   "bookings.status.cancelled": "жокко чыгарылган",
-  "bookings.status.refunded": "кайтарылган"
+  "bookings.status.refunded": "кайтарылган",
+  "bookings.confirm": "Ырастоо",
+  "bookings.cancel": "Жокко чыгаруу",
+  "bookings.cancel_confirm": "{code} бронун жокко чыгарасызбы?"
 }

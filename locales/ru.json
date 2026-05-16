@@ -81,5 +81,8 @@
   "bookings.status.pending": "ожидает оплаты",
   "bookings.status.paid": "оплачена",
   "bookings.status.cancelled": "отменена",
-  "bookings.status.refunded": "возвращена"
+  "bookings.status.refunded": "возвращена",
+  "bookings.confirm": "Подтвердить",
+  "bookings.cancel": "Отменить",
+  "bookings.cancel_confirm": "Отменить бронь {code}?"
 }

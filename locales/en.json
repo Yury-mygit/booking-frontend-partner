@@ -81,5 +81,8 @@
   "bookings.status.pending": "awaiting payment",
   "bookings.status.paid": "paid",
   "bookings.status.cancelled": "cancelled",
-  "bookings.status.refunded": "refunded"
+  "bookings.status.refunded": "refunded",
+  "bookings.confirm": "Confirm",
+  "bookings.cancel": "Cancel",
+  "bookings.cancel_confirm": "Cancel booking {code}?"
 }

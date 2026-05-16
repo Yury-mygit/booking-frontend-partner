@@ -70,4 +70,6 @@ export const api = {
   // Bookings (incoming)
   listBookings: (statusFilter) =>
     call("GET", "/p/bookings" + (statusFilter ? `?status=${statusFilter}` : "")),
+  confirmBooking: (code) => call("POST", `/p/bookings/${code}/confirm`),
+  cancelBooking: (code) => call("POST", `/p/bookings/${code}/cancel`),
 };
