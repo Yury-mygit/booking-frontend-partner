@@ -73,6 +73,7 @@
   "room.name_en": "Name (en)",
   "room.description_ru": "Description (ru)",
   "room.capacity": "Capacity",
+  "room.floor": "Floor",
   "room.price_kgs": "Price per night (KGS)",
   "room.availability": "Calendar",
   "room.delete_confirm": "Delete room? (only if no active bookings)",

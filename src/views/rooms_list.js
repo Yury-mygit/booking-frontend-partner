@@ -40,7 +40,7 @@ function roomCardHtml(r, hotelId) {
       ${photoHtml}
       <div class="hotel-row-body">
         <h3>${escapeHtml(r.name_ru)}</h3>
-        <div class="meta">capacity=${r.capacity}, ${r.price_kgs} сом/ночь</div>
+        <div class="meta">capacity=${r.capacity}, ${r.price_kgs} сом/ночь${r.floor != null ? `, ${t("room.floor")}: ${r.floor}` : ""}</div>
       </div>
       <div class="hotel-actions">
         <a class="hotel-edit-btn" href="#/room/${hotelId}/${r.id}" title="${t("hotels.edit")}" aria-label="${t("hotels.edit")}">⚙</a>

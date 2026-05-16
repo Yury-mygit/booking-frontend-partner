@@ -73,6 +73,7 @@
   "room.name_en": "Название (англ)",
   "room.description_ru": "Описание (рус)",
   "room.capacity": "Вместимость",
+  "room.floor": "Этаж",
   "room.price_kgs": "Цена за ночь (сом)",
   "room.availability": "Календарь",
   "room.delete_confirm": "Удалить комнату? (только если нет активных броней)",
