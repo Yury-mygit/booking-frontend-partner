@@ -56,6 +56,7 @@ export const api = {
   // Hotels (partner)
   listHotels: () => call("GET", "/p/hotels"),
   getHotel: (id) => call("GET", `/p/hotels/${id}`),
+  getHotelDashboard: (id) => call("GET", `/p/hotels/${id}/dashboard`),
   createHotel: (payload) => call("POST", "/p/hotels", payload),
   updateHotel: (id, payload) => call("PUT", `/p/hotels/${id}`, payload),
   deleteHotel: (id) => call("DELETE", `/p/hotels/${id}`),
@@ -105,8 +106,14 @@ export const api = {
     call("PUT", `/p/rooms/${rid}/photos/reorder`, { urls }),
 
   // Bookings (incoming)
-  listBookings: (statusFilter) =>
-    call("GET", "/p/bookings" + (statusFilter ? `?status=${statusFilter}` : "")),
+  listBookings: (statusFilter, opts = {}) => {
+    const qs = new URLSearchParams();
+    if (statusFilter) qs.set("status", statusFilter);
+    if (opts.hotelId) qs.set("hotel_id", opts.hotelId);
+    if (opts.limit) qs.set("limit", opts.limit);
+    const s = qs.toString();
+    return call("GET", "/p/bookings" + (s ? `?${s}` : ""));
+  },
   confirmBooking: (code) => call("POST", `/p/bookings/${code}/confirm`),
   cancelBooking: (code) => call("POST", `/p/bookings/${code}/cancel`),
 
