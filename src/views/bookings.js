@@ -2,10 +2,54 @@ import { api } from "../api.js";
 import { t } from "../i18n.js";
 import { escapeHtml } from "../util.js";
 
+let _eventSources = [];
+let _refreshTimer = null;
+
+function closeStreams() {
+  _eventSources.forEach((es) => es.close());
+  _eventSources = [];
+  if (_refreshTimer) {
+    clearTimeout(_refreshTimer);
+    _refreshTimer = null;
+  }
+}
+
+function scheduleReload() {
+  // Debounce — admin/partner bulk-ops can fire many events in a burst.
+  if (_refreshTimer) clearTimeout(_refreshTimer);
+  _refreshTimer = setTimeout(() => {
+    _refreshTimer = null;
+    if (!document.getElementById("list")) return; // navigated away
+    load();
+  }, 300);
+}
+
+async function openStreams() {
+  closeStreams();
+  let hotels;
+  try {
+    hotels = await api.listHotels();
+  } catch {
+    return;
+  }
+  hotels.forEach((h) => {
+    const slug = h.slug || h.id;
+    const es = new EventSource(`/api/v1/public/hotels/${encodeURIComponent(slug)}/events`);
+    es.onmessage = scheduleReload;
+    _eventSources.push(es);
+  });
+}
+
+window.addEventListener("hashchange", () => {
+  const hash = location.hash.replace(/^#/, "").split("?")[0];
+  if (hash !== "/bookings") closeStreams();
+});
+
 export async function renderBookings() {
   const app = document.getElementById("app");
   app.innerHTML = `<h1>${t("bookings.title")}</h1><div id="list">${t("app.loading")}</div>`;
   await load();
+  openStreams();
 }
 
 async function load() {
