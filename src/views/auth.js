@@ -21,7 +21,7 @@ export function renderDevLogin(onLoggedIn) {
         Number(document.getElementById("dev-tg").value),
         document.getElementById("dev-name").value || "DevPartner",
       );
-      api.setSession(r.token, r.user);
+      api.setSession(r.token, r.user, r.accessible_owners || []);
       onLoggedIn();
     } catch (e) {
       document.getElementById("dev-err").textContent = t("app.error", { msg: e.message });

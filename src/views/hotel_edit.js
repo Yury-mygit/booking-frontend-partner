@@ -122,6 +122,7 @@ async function renderStatusTab(body, id) {
   const canPublish = dash.can_publish;
   const isPublished = h.status === "published";
   const isBlocked = h.status === "blocked";
+  const canManageHotel = api.canDo("manage_hotel", h.owner_user_id);
 
   const subline = isBlocked
     ? ""
@@ -143,7 +144,7 @@ async function renderStatusTab(body, id) {
         </div>
       </div>
       <div class="status-header-actions">
-        ${isBlocked
+        ${(!canManageHotel || isBlocked)
           ? ""
           : isPublished
             ? `<button class="secondary" id="btn-unpub">${t("hotel.unpublish")}</button>`
@@ -169,24 +170,29 @@ async function renderStatusTab(body, id) {
       ${renderRecentBookings(recent)}
     </div>
 
-    <div class="danger-zone">
-      <h3>${t("status.danger.title")}</h3>
-      <p class="muted">${t("status.danger.body")}</p>
-      <button class="danger" id="btn-del">${t("app.delete")}</button>
-    </div>
+    ${canManageHotel
+      ? `<div class="danger-zone">
+          <h3>${t("status.danger.title")}</h3>
+          <p class="muted">${t("status.danger.body")}</p>
+          <button class="danger" id="btn-del">${t("app.delete")}</button>
+        </div>`
+      : ""}
   `;
 
   document.getElementById("btn-pub")?.addEventListener("click", () => statusChange(id, "published"));
   document.getElementById("btn-unpub")?.addEventListener("click", () => statusChange(id, "draft"));
-  document.getElementById("btn-del").onclick = async () => {
-    if (!confirm(t("hotel.delete_confirm"))) return;
-    try {
-      await api.deleteHotel(id);
-      navigate("/");
-    } catch (e) {
-      alert(e.message);
-    }
-  };
+  const btnDel = document.getElementById("btn-del");
+  if (btnDel) {
+    btnDel.onclick = async () => {
+      if (!confirm(t("hotel.delete_confirm"))) return;
+      try {
+        await api.deleteHotel(id);
+        navigate("/");
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+  }
 
   body.querySelectorAll(".check-action[data-tab]").forEach((a) => {
     a.onclick = (e) => {
@@ -256,14 +262,17 @@ function renderRecentBookings(items) {
 }
 
 function renderRecentRow(b) {
-  const actions = b.status === "pending"
-    ? `
-      <button class="link" data-act="confirm" data-code="${b.code}">${t("bookings.confirm")}</button>
-      <button class="link danger" data-act="cancel" data-code="${b.code}">${t("bookings.cancel")}</button>
-    `
-    : b.status === "paid"
-      ? `<button class="link danger" data-act="cancel" data-code="${b.code}">${t("bookings.cancel")}</button>`
-      : "";
+  const canManage = api.canDo("manage_bookings", _state.hotel?.owner_user_id);
+  const actions = !canManage
+    ? ""
+    : b.status === "pending"
+      ? `
+        <button class="link" data-act="confirm" data-code="${b.code}">${t("bookings.confirm")}</button>
+        <button class="link danger" data-act="cancel" data-code="${b.code}">${t("bookings.cancel")}</button>
+      `
+      : b.status === "paid"
+        ? `<button class="link danger" data-act="cancel" data-code="${b.code}">${t("bookings.cancel")}</button>`
+        : "";
   return `
     <tr>
       <td><code>${escapeHtml(b.code)}</code></td>

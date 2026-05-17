@@ -61,10 +61,19 @@ async function load() {
       list.innerHTML = `<p class="muted">${t("bookings.empty")}</p>`;
       return;
     }
+    // Look up hotel owners to decide manage_bookings per-row (different owners
+    // may have different perms for this staff user).
+    const ownerByHotel = new Map();
+    try {
+      const hotels = await api.listHotels();
+      hotels.forEach((h) => ownerByHotel.set(h.id, h.owner_user_id));
+    } catch (_) {}
     list.innerHTML = items
       .map((b) => {
-        const canConfirm = b.status === "pending";
-        const canCancel = b.status === "pending" || b.status === "paid";
+        const ownerId = ownerByHotel.get(b.hotel_id);
+        const canManage = api.canDo("manage_bookings", ownerId);
+        const canConfirm = canManage && b.status === "pending";
+        const canCancel = canManage && (b.status === "pending" || b.status === "paid");
         return `
           <div class="card">
             <h3>${escapeHtml(b.hotel_name_ru)} — ${escapeHtml(b.room_name_ru)}</h3>

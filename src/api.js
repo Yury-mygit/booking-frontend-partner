@@ -2,6 +2,11 @@ const BASE = "/api/v1";
 
 let _token = localStorage.getItem("booking_token") || "";
 let _user = JSON.parse(localStorage.getItem("booking_user") || "null");
+let _accessibleOwners = JSON.parse(localStorage.getItem("booking_accessible_owners") || "[]");
+let _activeOwnerId = (() => {
+  const raw = localStorage.getItem("booking_active_owner_id");
+  return raw ? Number(raw) : null;
+})();
 
 async function call(method, path, body) {
   const headers = { "Content-Type": "application/json" };
@@ -28,17 +33,52 @@ async function call(method, path, body) {
 export const api = {
   hasToken: () => !!_token,
   user: () => _user,
-  setSession(token, user) {
+  owners: () => _accessibleOwners,
+  activeOwnerId: () => {
+    if (_accessibleOwners.length === 0) return null;
+    if (_activeOwnerId && _accessibleOwners.some((o) => o.owner_user_id === _activeOwnerId)) {
+      return _activeOwnerId;
+    }
+    // fall back to first
+    return _accessibleOwners[0].owner_user_id;
+  },
+  setActiveOwnerId(id) {
+    _activeOwnerId = id;
+    if (id) localStorage.setItem("booking_active_owner_id", String(id));
+    else localStorage.removeItem("booking_active_owner_id");
+    window.dispatchEvent(new CustomEvent("ownerchange"));
+  },
+  canDo(perm, ownerId) {
+    const oid = ownerId ?? api.activeOwnerId();
+    if (!oid) return false;
+    const o = _accessibleOwners.find((x) => x.owner_user_id === oid);
+    return !!(o && o.perms && o.perms[perm]);
+  },
+  setSession(token, user, accessibleOwners) {
     _token = token;
     _user = user;
+    _accessibleOwners = accessibleOwners || [];
     localStorage.setItem("booking_token", token);
     localStorage.setItem("booking_user", JSON.stringify(user));
+    localStorage.setItem("booking_accessible_owners", JSON.stringify(_accessibleOwners));
+    // reset selector if previously selected owner is no longer accessible
+    if (
+      _activeOwnerId &&
+      !_accessibleOwners.some((o) => o.owner_user_id === _activeOwnerId)
+    ) {
+      _activeOwnerId = null;
+      localStorage.removeItem("booking_active_owner_id");
+    }
   },
   clearSession() {
     _token = "";
     _user = null;
+    _accessibleOwners = [];
+    _activeOwnerId = null;
     localStorage.removeItem("booking_token");
     localStorage.removeItem("booking_user");
+    localStorage.removeItem("booking_accessible_owners");
+    localStorage.removeItem("booking_active_owner_id");
   },
 
   authTg: (initData) => call("POST", "/auth/tg", { init_data: initData }),
@@ -54,7 +94,13 @@ export const api = {
   authToken: () => _token,
 
   // Hotels (partner)
-  listHotels: () => call("GET", "/p/hotels"),
+  listHotels: (opts = {}) => {
+    const qs = new URLSearchParams();
+    const ownerId = opts.ownerId ?? api.activeOwnerId();
+    if (ownerId) qs.set("owner_id", ownerId);
+    const s = qs.toString();
+    return call("GET", "/p/hotels" + (s ? `?${s}` : ""));
+  },
   getHotel: (id) => call("GET", `/p/hotels/${id}`),
   getHotelDashboard: (id) => call("GET", `/p/hotels/${id}/dashboard`),
   createHotel: (payload) => call("POST", "/p/hotels", payload),
@@ -111,6 +157,10 @@ export const api = {
     if (statusFilter) qs.set("status", statusFilter);
     if (opts.hotelId) qs.set("hotel_id", opts.hotelId);
     if (opts.limit) qs.set("limit", opts.limit);
+    // ownerId is opt-in (defaults to active selector); per-hotel callers should
+    // not pass it (hotel_id already pins the owner).
+    const ownerId = opts.ownerId !== undefined ? opts.ownerId : (opts.hotelId ? null : api.activeOwnerId());
+    if (ownerId) qs.set("owner_id", ownerId);
     const s = qs.toString();
     return call("GET", "/p/bookings" + (s ? `?${s}` : ""));
   },
@@ -121,10 +171,22 @@ export const api = {
   createWalkinBooking: (payload) => call("POST", "/p/walkin-bookings", payload),
 
   // Flat rooms (across all my hotels)
-  listAllRooms: () => call("GET", "/p/rooms"),
+  listAllRooms: (opts = {}) => {
+    const qs = new URLSearchParams();
+    const ownerId = opts.ownerId ?? api.activeOwnerId();
+    if (ownerId) qs.set("owner_id", ownerId);
+    const s = qs.toString();
+    return call("GET", "/p/rooms" + (s ? `?${s}` : ""));
+  },
 
   // Clients
-  listClients: () => call("GET", "/p/clients"),
+  listClients: (opts = {}) => {
+    const qs = new URLSearchParams();
+    const ownerId = opts.ownerId ?? api.activeOwnerId();
+    if (ownerId) qs.set("owner_id", ownerId);
+    const s = qs.toString();
+    return call("GET", "/p/clients" + (s ? `?${s}` : ""));
+  },
   getClient: (id) => call("GET", `/p/clients/${id}`),
   updateClient: (id, payload) => call("PUT", `/p/clients/${id}`, payload),
   listClientBookings: (id) => call("GET", `/p/clients/${id}/bookings`),
@@ -140,4 +202,37 @@ export const api = {
     return data;
   },
   deleteClientPhoto: (id) => call("DELETE", `/p/clients/${id}/photo`),
+
+  // Staff
+  listStaff: (opts = {}) => {
+    const qs = new URLSearchParams();
+    const ownerId = opts.ownerId ?? api.activeOwnerId();
+    if (ownerId) qs.set("owner_id", ownerId);
+    const s = qs.toString();
+    return call("GET", "/p/staff" + (s ? `?${s}` : ""));
+  },
+  addStaff: (payload, opts = {}) => {
+    const qs = new URLSearchParams();
+    const ownerId = opts.ownerId ?? api.activeOwnerId();
+    if (ownerId) qs.set("owner_id", ownerId);
+    const s = qs.toString();
+    return call("POST", "/p/staff" + (s ? `?${s}` : ""), payload);
+  },
+  updateStaff: (id, payload) => call("PUT", `/p/staff/${id}`, payload),
+  removeStaff: (id) => call("DELETE", `/p/staff/${id}`),
+
+  // Audit
+  listAudit: (opts = {}) => {
+    const qs = new URLSearchParams();
+    const ownerId = opts.ownerId ?? api.activeOwnerId();
+    if (ownerId) qs.set("owner_id", ownerId);
+    if (opts.action) qs.set("action", opts.action);
+    if (opts.subjectType) qs.set("subject_type", opts.subjectType);
+    if (opts.since) qs.set("since", opts.since);
+    if (opts.until) qs.set("until", opts.until);
+    if (opts.limit) qs.set("limit", opts.limit);
+    if (opts.offset) qs.set("offset", opts.offset);
+    const s = qs.toString();
+    return call("GET", "/p/audit" + (s ? `?${s}` : ""));
+  },
 };

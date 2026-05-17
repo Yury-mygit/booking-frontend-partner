@@ -14,8 +14,13 @@
         <a href="#/rooms" data-i18n="nav.rooms">Комнаты</a>
         <a href="#/bookings" data-i18n="nav.bookings">Брони</a>
         <a href="#/clients" data-i18n="nav.clients">Клиенты</a>
+        <a href="#/staff" data-i18n="nav.staff" id="nav-staff" style="display:none">Сотрудники</a>
+        <a href="#/audit" data-i18n="nav.audit">Журнал</a>
       </nav>
-      <button id="lang-cycle" title="RU / KY / EN">RU</button>
+      <div class="topbar-right">
+        <select id="owner-selector" style="display:none"></select>
+        <button id="lang-cycle" title="RU / KY / EN">RU</button>
+      </div>
     </header>
     <main id="app">Loading…</main>
     <script type="module" src="/src/main.js"></script>

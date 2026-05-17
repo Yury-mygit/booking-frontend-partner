@@ -14,6 +14,9 @@ import { renderHotelsList } from "./views/hotels_list.js";
 import { renderPending } from "./views/pending.js";
 import { renderRoomEdit } from "./views/room_edit.js";
 import { renderRoomsList } from "./views/rooms_list.js";
+import { renderStaffList } from "./views/staff_list.js";
+import { renderAudit } from "./views/audit.js";
+import { mountOwnerSelector } from "./views/owner_selector.js";
 
 initTg();
 applyTheme();
@@ -23,6 +26,9 @@ applyStaticI18n();
 document.getElementById("lang-cycle").onclick = cycleLang;
 window.addEventListener("langchange", () => {
   applyStaticI18n();
+  run();
+});
+window.addEventListener("ownerchange", () => {
   run();
 });
 
@@ -35,6 +41,8 @@ route("/hotel/{id}", renderHotelEdit);
 route("/room/{hotelId}/{roomId}/availability", renderAvailability);
 route("/room/{hotelId}/{roomId}", renderRoomEdit);
 route("/bookings", renderBookings);
+route("/staff", renderStaffList);
+route("/audit", renderAudit);
 
 function maybeRenderPending() {
   const u = api.user();
@@ -50,31 +58,47 @@ window.addEventListener("apierror", (e) => {
   if (e.detail && e.detail.code === "partner_pending") {
     const u = api.user() || {};
     u.partner_status = "pending";
-    api.setSession(api.authToken(), u);
+    api.setSession(api.authToken(), u, []);
     renderPending();
   }
 });
 
+async function refreshWhoami() {
+  // Keep accessible_owners fresh on app load — the cached value in localStorage
+  // can be stale (e.g. owner added/removed staff since last visit).
+  try {
+    const w = await api.whoami();
+    api.setSession(api.authToken(), api.user(), w.accessible_owners || []);
+  } catch (e) {
+    // Network/auth errors will be handled by the next call.
+  }
+}
+
 async function bootstrap() {
   if (api.hasToken()) {
     if (maybeRenderPending()) return;
+    await refreshWhoami();
+    mountOwnerSelector();
     run();
     return;
   }
   if (inTelegram) {
     try {
       const r = await api.authTg(tg.initData);
-      api.setSession(r.token, r.user);
+      api.setSession(r.token, r.user, r.accessible_owners || []);
       if (maybeRenderPending()) return;
+      mountOwnerSelector();
       run();
     } catch (e) {
       document.getElementById("app").innerHTML =
         `<div class="error">Auth failed: ${e.message}</div>`;
     }
   } else {
-    renderDevLogin(() => {
+    renderDevLogin(async () => {
       if (!location.hash) location.hash = "#/";
       if (maybeRenderPending()) return;
+      await refreshWhoami();
+      mountOwnerSelector();
       run();
     });
   }

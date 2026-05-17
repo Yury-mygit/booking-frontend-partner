@@ -43,9 +43,13 @@ function attachCardHandlers(container) {
 
 export async function renderHotelsList() {
   const app = document.getElementById("app");
+  // Only the owner-self can create hotels — staff cannot.
+  const activeOwnerId = api.activeOwnerId();
+  const owner = api.owners().find((o) => o.owner_user_id === activeOwnerId);
+  const isSelf = !!(owner && owner.is_self);
   app.innerHTML = `<h1>${t("hotels.title")}</h1>
     <div id="list">${t("app.loading")}</div>
-    <div id="new-btn">${newBtnHtml()}</div>`;
+    <div id="new-btn">${isSelf ? newBtnHtml() : ""}</div>`;
   try {
     const hotels = await api.listHotels();
     const list = document.getElementById("list");
