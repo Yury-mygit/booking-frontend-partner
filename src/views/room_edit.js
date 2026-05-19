@@ -91,14 +91,19 @@ function switchTab(name) {
   wireSaveHandler();
 }
 
+function canManageRooms() {
+  return api.canDo("manage_rooms", api.activeOwnerId());
+}
+
 function mainFormHtml(room) {
+  const canEdit = canManageRooms();
   return `
     <form id="form">
       ${MAIN_FIELDS.map(([k, key, kind]) =>
         fieldHtml([k, key, kind], room?.[k] ?? "")
       ).join("")}
-      <button class="primary full" id="btn-save">${t("app.save")}</button>
-      ${!_state.isNew ? `<p style="margin-top:10px"><button class="danger" id="btn-del">${t("app.delete")}</button></p>` : ""}
+      ${canEdit ? `<button class="primary full" id="btn-save">${t("app.save")}</button>` : ""}
+      ${canEdit && !_state.isNew ? `<p style="margin-top:10px"><button class="danger" id="btn-del">${t("app.delete")}</button></p>` : ""}
       ${!_state.isNew ? `<p><a class="secondary" style="text-decoration:none;display:inline-block;padding:8px 14px;border:1px solid var(--accent);border-radius:4px;color:var(--accent);background:var(--surface)" href="#/room/${_state.hotelId}/${_state.roomId}/availability">${t("room.availability")}</a></p>` : ""}
       <div id="err" class="error"></div>
     </form>
@@ -106,12 +111,13 @@ function mainFormHtml(room) {
 }
 
 function descriptionFormHtml(room) {
+  const canEdit = canManageRooms();
   return `
     <form id="form">
       ${DESCRIPTION_FIELDS.map(([k, key, kind]) =>
         fieldHtml([k, key, kind], room?.[k] ?? "")
       ).join("")}
-      <button class="primary full" id="btn-save">${t("app.save")}</button>
+      ${canEdit ? `<button class="primary full" id="btn-save">${t("app.save")}</button>` : ""}
       <div id="err" class="error"></div>
     </form>
   `;
@@ -119,6 +125,7 @@ function descriptionFormHtml(room) {
 
 function renderPhotosTab(body) {
   const photos = _state.room.photos || [];
+  const canEdit = canManageRooms();
   body.innerHTML = `
     <div id="photos-list">
       ${photos.length === 0
@@ -132,22 +139,24 @@ function renderPhotosTab(body) {
                   ${i === 0 ? `<span class="status-pill published">${t("photos.main")}</span>` : ""}
                   <div class="meta" style="word-break:break-all">${escapeHtml(url)}</div>
                 </div>
-                <div class="photo-actions">
+                ${canEdit ? `<div class="photo-actions">
                   <button class="secondary" data-up="${i}" ${i === 0 ? "disabled" : ""}>${t("photos.up")}</button>
                   <button class="secondary" data-down="${i}" ${i === photos.length - 1 ? "disabled" : ""}>${t("photos.down")}</button>
                   <button class="danger" data-del="${escapeHtml(url)}">${t("photos.delete")}</button>
-                </div>
+                </div>` : ""}
               </div>`,
             )
             .join("")}
     </div>
-    <div class="photo-upload">
+    ${canEdit ? `<div class="photo-upload">
       <label class="meta">${t("photos.allowed")}</label>
       <input type="file" id="photo-file" accept="image/jpeg,image/png,image/webp" />
       <button class="primary" id="photo-upload-btn" disabled>${t("photos.upload")}</button>
       <div id="photo-status" class="meta"></div>
-    </div>
+    </div>` : ""}
   `;
+
+  if (!canEdit) return;
 
   body.querySelectorAll("button[data-up]").forEach((b) => {
     b.onclick = () => moveAndSave(Number(b.dataset.up), -1);

@@ -13,6 +13,7 @@ const DOC_KINDS = ["passport", "id_card", "driving_license", "other"];
  *   - onSuccess: callback after successful POST
  */
 export async function openWalkinModal({ hotelId, roomId, room, initialDate, onSuccess }) {
+  if (!api.canDo("manage_bookings", api.activeOwnerId())) return;
   let mount = document.getElementById("modal-mount");
   if (!mount) {
     mount = document.createElement("div");

@@ -37,6 +37,7 @@ export async function renderAvailability({ hotelId, roomId }) {
     <div id="modal-mount"></div>
   `;
 
+  const canManage = api.canDo("manage_bookings", api.activeOwnerId());
   const cal = document.getElementById("cal");
   for (let i = 0; i < DAYS_AHEAD; i++) {
     const d = todayPlus(i);
@@ -50,7 +51,7 @@ export async function renderAvailability({ hotelId, roomId }) {
       ${priced ? `<div class="price">${row.price_override}</div>` : ""}`;
     if (status === "booked") {
       cell.title = "booked — нельзя редактировать";
-    } else {
+    } else if (canManage) {
       cell.onclick = () => openEditor(d, row, room, hotelId, roomId);
     }
     cal.appendChild(cell);

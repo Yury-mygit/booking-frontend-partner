@@ -16,6 +16,7 @@ export async function renderRoomsList({ hotelId }) {
     return;
   }
 
+  const canManageRooms = api.canDo("manage_rooms", hotel.owner_user_id);
   app.innerHTML = `
     <div class="form-header">
       <a class="back-btn" href="#/" aria-label="${t("app.back")}">←</a>
@@ -26,7 +27,7 @@ export async function renderRoomsList({ hotelId }) {
         ? `<p class="muted">— ${t("hotels.empty")} —</p>`
         : rooms.map((r) => roomCardHtml(r, hotelId)).join("")}
     </div>
-    <a href="#/room/${hotelId}/new" class="secondary" style="display:inline-block;padding:8px 14px;text-decoration:none;border:1px solid var(--accent);border-radius:4px;color:var(--accent);background:var(--surface);margin-top:8px">${t("hotel.add_room")}</a>
+    ${canManageRooms ? `<a href="#/room/${hotelId}/new" class="secondary" style="display:inline-block;padding:8px 14px;text-decoration:none;border:1px solid var(--accent);border-radius:4px;color:var(--accent);background:var(--surface);margin-top:8px">${t("hotel.add_room")}</a>` : ""}
   `;
   attachCardHandlers(document.getElementById("rooms-list"));
 }

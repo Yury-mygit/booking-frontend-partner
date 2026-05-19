@@ -19,6 +19,9 @@ export async function renderClientEdit({ clientId }) {
     return;
   }
 
+  const canEdit = api.canDo("manage_bookings", api.activeOwnerId());
+  const ro = canEdit ? "" : "readonly";
+
   app.innerHTML = `
     <div class="form-header">
       <a class="back-btn" href="#/clients" aria-label="${t("app.back")}">←</a>
@@ -30,26 +33,26 @@ export async function renderClientEdit({ clientId }) {
         ${client.photo_url
           ? `<img class="client-photo" src="${escapeHtml(client.photo_url)}" alt="photo">`
           : `<div class="client-photo client-photo-empty"></div>`}
-        <div>
+        ${canEdit ? `<div>
           <input type="file" id="photo-file" accept="image/*" style="display:block;margin-bottom:6px">
           <button id="photo-upload" class="secondary">${t("client.photo.upload")}</button>
           ${client.photo_url ? `<button id="photo-remove" class="danger">${t("client.photo.remove")}</button>` : ""}
-        </div>
+        </div>` : ""}
       </div>
 
       <form id="client-form">
-        <label>${t("client.first_name")}<input name="first_name" value="${escapeHtml(client.first_name || "")}" required></label>
-        <label>${t("client.last_name")}<input name="last_name" value="${escapeHtml(client.last_name || "")}"></label>
-        <label>${t("client.phone")}<input name="phone" value="${escapeHtml(client.phone || "")}"></label>
-        <label>${t("client.email")}<input name="email" type="email" value="${escapeHtml(client.email || "")}"></label>
+        <label>${t("client.first_name")}<input name="first_name" value="${escapeHtml(client.first_name || "")}" required ${ro}></label>
+        <label>${t("client.last_name")}<input name="last_name" value="${escapeHtml(client.last_name || "")}" ${ro}></label>
+        <label>${t("client.phone")}<input name="phone" value="${escapeHtml(client.phone || "")}" ${ro}></label>
+        <label>${t("client.email")}<input name="email" type="email" value="${escapeHtml(client.email || "")}" ${ro}></label>
         <label>${t("client.doc_kind")}
-          <select name="doc_kind">
+          <select name="doc_kind" ${canEdit ? "" : "disabled"}>
             <option value="">${t("client.doc_kind.none")}</option>
             ${DOC_KINDS.map(k => `<option value="${k}"${client.doc_kind === k ? " selected" : ""}>${t("client.doc_kind." + k)}</option>`).join("")}
           </select>
         </label>
-        <label>${t("client.doc_number")}<input name="doc_number" value="${escapeHtml(client.doc_number || "")}"></label>
-        <button type="submit" class="primary">${t("app.save")}</button>
+        <label>${t("client.doc_number")}<input name="doc_number" value="${escapeHtml(client.doc_number || "")}" ${ro}></label>
+        ${canEdit ? `<button type="submit" class="primary">${t("app.save")}</button>` : ""}
         <span id="save-status" class="muted small"></span>
       </form>
     </div>
@@ -57,6 +60,8 @@ export async function renderClientEdit({ clientId }) {
     <h2 style="margin-top:24px">${t("client.history")}</h2>
     <div id="history">${historyHtml(history)}</div>
   `;
+
+  if (!canEdit) return;
 
   document.getElementById("client-form").addEventListener("submit", async (e) => {
     e.preventDefault();

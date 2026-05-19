@@ -39,23 +39,24 @@ function tabsBarHtml() {
   `;
 }
 
-function descriptionFormHtml(hotel) {
+function descriptionFormHtml(hotel, canEdit = true) {
+  const ro = canEdit ? "" : "readonly";
   return `
     <form id="form">
       ${FIELDS.map(([k, key, kind]) => {
         const v = hotel?.[k] ?? "";
         if (kind === "textarea") {
           return `<div class="form-row"><label>${t(key)}</label>
-            <textarea name="${k}">${escapeHtml(v)}</textarea></div>`;
+            <textarea name="${k}" ${ro}>${escapeHtml(v)}</textarea></div>`;
         }
         const inputType = kind === "input-number" ? "number" : "text";
         const step = kind === "input-number" ? 'step="any"' : "";
         return `<div class="form-row"><label>${t(key)}</label>
-          <input type="${inputType}" ${step} name="${k}" value="${escapeHtml(v)}" /></div>`;
+          <input type="${inputType}" ${step} name="${k}" value="${escapeHtml(v)}" ${ro} /></div>`;
       }).join("")}
       <div class="form-row"><label>${t("hotel.photos_urls")}</label>
-        <input name="photos" value="${escapeHtml((hotel?.photos || []).join(", "))}" /></div>
-      <button class="primary full" id="btn-save">${t("app.save")}</button>
+        <input name="photos" value="${escapeHtml((hotel?.photos || []).join(", "))}" ${ro} /></div>
+      ${canEdit ? `<button class="primary full" id="btn-save">${t("app.save")}</button>` : ""}
       <div id="form-err" class="error"></div>
     </form>
   `;
@@ -397,12 +398,14 @@ function renderShareTab(body) {
 }
 
 function renderDescriptionTab(body, id) {
-  body.innerHTML = descriptionFormHtml(_state.hotel);
-  wireSaveHandler(false, id);
+  const canEdit = api.canDo("manage_hotel", _state.hotel?.owner_user_id);
+  body.innerHTML = descriptionFormHtml(_state.hotel, canEdit);
+  if (canEdit) wireSaveHandler(false, id);
 }
 
 function renderPhotosTab(body, id) {
   const photos = _state.hotel.photos || [];
+  const canEdit = api.canDo("manage_hotel", _state.hotel?.owner_user_id);
   body.innerHTML = `
     <div id="photos-list">
       ${photos.length === 0
@@ -416,22 +419,24 @@ function renderPhotosTab(body, id) {
                   ${i === 0 ? `<span class="status-pill published">${t("photos.main")}</span>` : ""}
                   <div class="meta" style="word-break:break-all">${escapeHtml(url)}</div>
                 </div>
-                <div class="photo-actions">
+                ${canEdit ? `<div class="photo-actions">
                   <button class="secondary" data-up="${i}" ${i === 0 ? "disabled" : ""}>${t("photos.up")}</button>
                   <button class="secondary" data-down="${i}" ${i === photos.length - 1 ? "disabled" : ""}>${t("photos.down")}</button>
                   <button class="danger" data-del="${escapeHtml(url)}">${t("photos.delete")}</button>
-                </div>
+                </div>` : ""}
               </div>`,
             )
             .join("")}
     </div>
-    <div class="photo-upload">
+    ${canEdit ? `<div class="photo-upload">
       <label class="meta">${t("photos.allowed")}</label>
       <input type="file" id="photo-file" accept="image/jpeg,image/png,image/webp" />
       <button class="primary" id="photo-upload-btn" disabled>${t("photos.upload")}</button>
       <div id="photo-status" class="meta"></div>
-    </div>
+    </div>` : ""}
   `;
+
+  if (!canEdit) return;
 
   body.querySelectorAll("button[data-up]").forEach((b) => {
     b.onclick = () => moveAndSave(Number(b.dataset.up), -1, id);
