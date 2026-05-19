@@ -59,6 +59,10 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Ro
 .perm-row input { margin: 0; }
 .perms-cell { font-size: 12px; color: var(--text-faint); }
 .staff-add, .staff-list { margin: 16px 0; }
+.staff-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.staff-header-row h2 { margin: 0; }
+.pill-link { display: inline-block; padding: 4px 12px; border: 1px solid var(--border); border-radius: 999px; font-size: 13px; color: var(--text); text-decoration: none; background: var(--surface); }
+.pill-link:hover { background: var(--surface-hover, var(--border-soft)); }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
 .modal-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow: auto; }
 .modal-card h3 { margin: 0 0 8px; }
@@ -252,6 +256,12 @@ button.link:disabled { opacity: 0.5; cursor: not-allowed; }
 .status-pill.pending { background: var(--pill-draft-bg); color: var(--pill-draft-text); }
 .status-pill.paid { background: var(--pill-published-bg); color: var(--pill-published-text); }
 .status-pill.cancelled, .status-pill.refunded { background: var(--pill-blocked-bg); color: var(--pill-blocked-text); }
+.status-pill.postpay { background: var(--pill-draft-bg); color: var(--pill-draft-text); border: 1px dashed var(--text-muted, #888); margin-left: 6px; }
+.status-pill.confirmed { background: var(--pill-published-bg); color: var(--pill-published-text); margin-left: 6px; }
+.status-pill.unconfirmed { background: var(--pill-draft-bg); color: var(--pill-draft-text); margin-left: 6px; }
+.status-pill.unpaid { background: var(--pill-draft-bg); color: var(--pill-draft-text); }
+.postpay-toggle { display: flex; align-items: center; gap: 6px; margin: 8px 0; font-size: 13px; color: var(--text-muted, #888); cursor: pointer; }
+.postpay-toggle input { margin: 0; }
 
 .quick-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .quick-actions .qa { display: inline-flex; align-items: center; padding: 8px 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 13px; cursor: pointer; text-decoration: none; }

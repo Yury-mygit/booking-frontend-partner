@@ -13,10 +13,6 @@ export async function renderStaffList() {
   }
   const owner = api.owners().find((o) => o.owner_user_id === ownerId);
   const canManage = !!(owner && (owner.is_self || (owner.perms && owner.perms.manage_staff)));
-  if (!canManage) {
-    app.innerHTML = `<p class="muted">${t("staff.forbidden")}</p>`;
-    return;
-  }
 
   app.innerHTML = `<p class="muted">${t("app.loading")}</p>`;
   let staff;
@@ -28,9 +24,13 @@ export async function renderStaffList() {
   }
 
   app.innerHTML = `
-    <h2>${t("staff.title")}</h2>
-    <p class="muted">${t("staff.scope_hint", { owner: owner.owner_display_name || "—" })}</p>
+    <div class="staff-header-row">
+      <h2>${t("staff.title")}</h2>
+      <a class="pill-link" href="#/audit">${t("staff.audit_link")}</a>
+    </div>
+    <p class="muted">${t("staff.scope_hint", { owner: owner ? (owner.owner_display_name || "—") : "—" })}</p>
 
+    ${canManage ? `
     <section class="staff-add">
       <h3>${t("staff.add_title")}</h3>
       <form id="staff-add-form" class="form">
@@ -55,6 +55,7 @@ export async function renderStaffList() {
         <div id="staff-add-err" class="error" style="display:none"></div>
       </form>
     </section>
+    ` : ""}
 
     <section class="staff-list">
       <h3>${t("staff.list_title")}</h3>
@@ -67,19 +68,21 @@ export async function renderStaffList() {
                 <th>${t("staff.col_tg")}</th>
                 <th>${t("staff.col_perms")}</th>
                 <th>${t("staff.col_note")}</th>
-                <th></th>
+                ${canManage ? "<th></th>" : ""}
               </tr>
             </thead>
-            <tbody>${staff.map(renderStaffRow).join("")}</tbody>
+            <tbody>${staff.map((s) => renderStaffRow(s, canManage)).join("")}</tbody>
           </table>`}
     </section>
   `;
 
-  wireAddForm(ownerId);
-  wireRowActions();
+  if (canManage) {
+    wireAddForm(ownerId);
+    wireRowActions();
+  }
 }
 
-function renderStaffRow(s) {
+function renderStaffRow(s, canManage) {
   const permsLabels = PERMS.filter((p) => s.perms[p]).map((p) => t("staff.perm_short." + p)).join(", ") || "—";
   return `
     <tr data-id="${s.id}">
@@ -87,10 +90,10 @@ function renderStaffRow(s) {
       <td><code>${s.staff_telegram_id}</code></td>
       <td class="perms-cell">${escapeHtml(permsLabels)}</td>
       <td>${escapeHtml(s.note || "—")}</td>
-      <td class="row-actions">
+      ${canManage ? `<td class="row-actions">
         <button class="link" data-act="edit" data-id="${s.id}">${t("staff.edit")}</button>
         <button class="link danger" data-act="remove" data-id="${s.id}">${t("staff.remove")}</button>
-      </td>
+      </td>` : ""}
     </tr>
   `;
 }

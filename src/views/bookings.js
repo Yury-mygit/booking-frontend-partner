@@ -72,8 +72,27 @@ async function load() {
       .map((b) => {
         const ownerId = ownerByHotel.get(b.hotel_id);
         const canManage = api.canDo("manage_bookings", ownerId);
-        const canConfirm = canManage && b.status === "pending";
-        const canCancel = canManage && (b.status === "pending" || b.status === "paid");
+        const isPending = b.status === "pending";
+        const isPaid = b.status === "paid";
+        // Confirm — partner guarantee, available for any pending unconfirmed.
+        const canConfirm = canManage && isPending && !b.confirmed;
+        // Mark-paid — only for postpay (online ones settle via /c/payments).
+        const canMarkPaid = canManage && isPending && b.postpay;
+        const canCancel = canManage && (isPending || isPaid);
+        const canTogglePostpay = canManage && (isPending || isPaid);
+
+        const confirmedPill = b.confirmed
+          ? `<span class="status-pill confirmed">${t("bookings.pill.confirmed")}</span>`
+          : `<span class="status-pill unconfirmed">${t("bookings.pill.unconfirmed")}</span>`;
+        const paidPill = isPaid
+          ? `<span class="status-pill paid">${t("bookings.pill.paid")}</span>`
+          : (b.status === "cancelled" || b.status === "refunded"
+              ? `<span class="status-pill ${b.status}">${t("bookings.status." + b.status)}</span>`
+              : `<span class="status-pill unpaid">${t("bookings.pill.unpaid")}</span>`);
+        const postpayPill = b.postpay
+          ? `<span class="status-pill postpay">${t("bookings.pill.postpay")}</span>`
+          : "";
+
         return `
           <div class="card">
             <h3>${escapeHtml(b.hotel_name_ru)} — ${escapeHtml(b.room_name_ru)}</h3>
@@ -81,10 +100,16 @@ async function load() {
             <div class="meta">${t("bookings.dates", { ci: b.check_in, co: b.check_out, n: b.guests })}</div>
             <div class="meta">${t("bookings.client", { name: escapeHtml(b.client_first_name || "—") })}</div>
             <div class="price">${t("bookings.total", { total: b.total_kgs })}</div>
-            <div class="meta">${t("bookings.status." + b.status)}</div>
-            ${canConfirm || canCancel ? `
+            <div class="meta">${paidPill} ${confirmedPill} ${postpayPill}</div>
+            ${canTogglePostpay ? `
+              <label class="postpay-toggle">
+                <input type="checkbox" data-postpay="${b.code}" ${b.postpay ? "checked" : ""} />
+                <span>${t("bookings.postpay_label")}</span>
+              </label>` : ""}
+            ${canConfirm || canMarkPaid || canCancel ? `
               <div class="row-actions">
                 ${canConfirm ? `<button class="primary" data-confirm="${b.code}">${t("bookings.confirm")}</button>` : ""}
+                ${canMarkPaid ? `<button class="primary" data-markpaid="${b.code}">${t("bookings.mark_paid")}</button>` : ""}
                 ${canCancel ? `<button class="danger" data-cancel="${b.code}">${t("bookings.cancel")}</button>` : ""}
               </div>` : ""}
           </div>`;
@@ -96,12 +121,26 @@ async function load() {
         catch (e) { alert(e.message); }
       };
     });
+    list.querySelectorAll("[data-markpaid]").forEach((btn) => {
+      btn.onclick = async () => {
+        try { await api.markPaid(btn.dataset.markpaid); await load(); }
+        catch (e) { alert(e.message); }
+      };
+    });
     list.querySelectorAll("[data-cancel]").forEach((btn) => {
       btn.onclick = async () => {
         const code = btn.dataset.cancel;
         if (!confirm(t("bookings.cancel_confirm", { code }))) return;
         try { await api.cancelBooking(code); await load(); }
         catch (e) { alert(e.message); }
+      };
+    });
+    list.querySelectorAll("[data-postpay]").forEach((cb) => {
+      cb.onchange = async () => {
+        const code = cb.dataset.postpay;
+        const next = cb.checked;
+        try { await api.setPostpay(code, next); await load(); }
+        catch (e) { alert(e.message); cb.checked = !next; }
       };
     });
   } catch (e) {
