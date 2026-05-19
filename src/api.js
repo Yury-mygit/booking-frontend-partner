@@ -225,16 +225,42 @@ export const api = {
 
   // Audit
   listAudit: (opts = {}) => {
-    const qs = new URLSearchParams();
-    const ownerId = opts.ownerId ?? api.activeOwnerId();
-    if (ownerId) qs.set("owner_id", ownerId);
-    if (opts.action) qs.set("action", opts.action);
-    if (opts.subjectType) qs.set("subject_type", opts.subjectType);
-    if (opts.since) qs.set("since", opts.since);
-    if (opts.until) qs.set("until", opts.until);
+    const qs = _auditQs(opts);
     if (opts.limit) qs.set("limit", opts.limit);
     if (opts.offset) qs.set("offset", opts.offset);
     const s = qs.toString();
     return call("GET", "/p/audit" + (s ? `?${s}` : ""));
   },
+  async downloadAuditCsv(opts = {}) {
+    const qs = _auditQs(opts);
+    const headers = {};
+    if (_token) headers.Authorization = `Bearer ${_token}`;
+    const r = await fetch(BASE + "/p/audit.csv" + (qs.toString() ? `?${qs}` : ""), { headers });
+    if (!r.ok) {
+      throw new Error(`HTTP ${r.status}`);
+    }
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const today = new Date().toISOString().slice(0, 10);
+    a.download = `audit-${today}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
 };
+
+function _auditQs(opts) {
+  const qs = new URLSearchParams();
+  const ownerId = opts.ownerId ?? api.activeOwnerId();
+  if (ownerId) qs.set("owner_id", ownerId);
+  if (opts.action) qs.set("action", opts.action);
+  if (opts.subjectType) qs.set("subject_type", opts.subjectType);
+  if (opts.since) qs.set("since", opts.since);
+  if (opts.until) qs.set("until", opts.until);
+  if (opts.q) qs.set("q", opts.q);
+  if (opts.actorUserId) qs.set("actor_user_id", opts.actorUserId);
+  return qs;
+}

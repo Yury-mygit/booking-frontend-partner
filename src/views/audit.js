@@ -13,7 +13,7 @@ const ACTION_OPTIONS = [
   "staff.add", "staff.update", "staff.remove",
 ];
 
-const _state = { offset: 0, action: "", items: [], hasMore: true };
+const _state = { offset: 0, action: "", q: "", since: "", until: "", items: [], hasMore: true };
 
 export async function renderAudit() {
   const app = document.getElementById("app");
@@ -26,25 +26,61 @@ export async function renderAudit() {
   app.innerHTML = `
     <h2>${t("audit.title")}</h2>
     <div class="audit-filters">
+      <label>${t("audit.q_filter")}
+        <input id="audit-q" type="search" placeholder="${t("audit.q_placeholder")}" value="${_state.q}">
+      </label>
       <label>${t("audit.action_filter")}
         <select id="audit-action">
           ${ACTION_OPTIONS.map((a) => `<option value="${a}">${a ? a : t("audit.action_any")}</option>`).join("")}
         </select>
       </label>
+      <label>${t("audit.since")}
+        <input id="audit-since" type="date" value="${_state.since}">
+      </label>
+      <label>${t("audit.until")}
+        <input id="audit-until" type="date" value="${_state.until}">
+      </label>
+      <button class="secondary" id="audit-csv">${t("audit.export_csv")}</button>
     </div>
     <div id="audit-body"><p class="muted">${t("app.loading")}</p></div>
     <div class="row-actions" id="audit-pager"></div>
   `;
 
-  document.getElementById("audit-action").value = _state.action;
-  document.getElementById("audit-action").onchange = async (e) => {
-    _state.action = e.target.value;
-    _state.offset = 0;
-    _state.items = [];
-    _state.hasMore = true;
-    await loadPage();
+  const actionSel = document.getElementById("audit-action");
+  actionSel.value = _state.action;
+  actionSel.onchange = (e) => { _state.action = e.target.value; resetAndLoad(); };
+
+  const qInput = document.getElementById("audit-q");
+  let qTimer = null;
+  qInput.oninput = (e) => {
+    clearTimeout(qTimer);
+    qTimer = setTimeout(() => { _state.q = e.target.value.trim(); resetAndLoad(); }, 300);
   };
 
+  document.getElementById("audit-since").onchange = (e) => { _state.since = e.target.value; resetAndLoad(); };
+  document.getElementById("audit-until").onchange = (e) => { _state.until = e.target.value; resetAndLoad(); };
+
+  document.getElementById("audit-csv").onclick = async () => {
+    try {
+      await api.downloadAuditCsv(_currentOpts());
+    } catch (e) {
+      alert(t("app.error", { msg: e.message }));
+    }
+  };
+
+  resetAndLoad();
+}
+
+function _currentOpts() {
+  const opts = { ownerId: api.activeOwnerId() };
+  if (_state.action) opts.action = _state.action;
+  if (_state.q) opts.q = _state.q;
+  if (_state.since) opts.since = _state.since;
+  if (_state.until) opts.until = _state.until;
+  return opts;
+}
+
+async function resetAndLoad() {
   _state.offset = 0;
   _state.items = [];
   _state.hasMore = true;
@@ -52,9 +88,7 @@ export async function renderAudit() {
 }
 
 async function loadPage() {
-  const ownerId = api.activeOwnerId();
-  const opts = { ownerId, limit: PAGE_SIZE, offset: _state.offset };
-  if (_state.action) opts.action = _state.action;
+  const opts = { ..._currentOpts(), limit: PAGE_SIZE, offset: _state.offset };
   let page;
   try {
     page = await api.listAudit(opts);
