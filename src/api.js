@@ -223,6 +223,22 @@ export const api = {
   updateStaff: (id, payload) => call("PUT", `/p/staff/${id}`, payload),
   removeStaff: (id) => call("DELETE", `/p/staff/${id}`),
 
+  // Staff invites
+  createStaffInvite: (payload, ownerId) => {
+    const qs = new URLSearchParams();
+    if (ownerId != null) qs.set("owner_id", ownerId);
+    const s = qs.toString();
+    return call("POST", "/p/staff/invites" + (s ? `?${s}` : ""), payload);
+  },
+  listStaffInvites: (ownerId) => {
+    const qs = new URLSearchParams();
+    if (ownerId != null) qs.set("owner_id", ownerId);
+    const s = qs.toString();
+    return call("GET", "/p/staff/invites" + (s ? `?${s}` : ""));
+  },
+  revokeStaffInvite: (id) => call("DELETE", `/p/staff/invites/${id}`),
+  acceptStaffInvite: (token) => call("POST", "/p/staff/invite/accept", { token }),
+
   // Audit
   listAudit: (opts = {}) => {
     const qs = _auditQs(opts);

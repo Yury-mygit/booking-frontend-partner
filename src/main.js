@@ -86,6 +86,7 @@ async function bootstrap() {
     try {
       const r = await api.authTg(tg.initData);
       api.setSession(r.token, r.user, r.accessible_owners || []);
+      await maybeAcceptInvite();
       if (maybeRenderPending()) return;
       mountOwnerSelector();
       run();
@@ -101,6 +102,22 @@ async function bootstrap() {
       mountOwnerSelector();
       run();
     });
+  }
+}
+
+async function maybeAcceptInvite() {
+  const sp = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
+  if (!sp || !sp.startsWith("invite_")) return;
+  const token = sp.slice(7);
+  if (!token) return;
+  try {
+    await api.acceptStaffInvite(token);
+    // Re-fetch session so accessible_owners now contains the new staff scope.
+    const w = await api.whoami();
+    api.setSession(api.authToken(), api.user(), w.accessible_owners || []);
+  } catch (e) {
+    // Не делаем критичной ошибкой — staff может уже состоять; продолжаем.
+    console.warn("invite accept failed:", e.message);
   }
 }
 
