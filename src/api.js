@@ -81,7 +81,7 @@ export const api = {
     localStorage.removeItem("booking_active_owner_id");
   },
 
-  authTg: (initData) => call("POST", "/auth/tg", { init_data: initData }),
+  authTg: (initData) => call("POST", "/auth/tg", { init_data: initData, requested_role: "partner" }),
   authDev(tgId, name) {
     const qs = new URLSearchParams({
       telegram_id: String(tgId),
