@@ -24,6 +24,9 @@ watchTheme();
 applyStaticI18n();
 
 document.getElementById("lang-cycle").onclick = cycleLang;
+document.getElementById("back-to-hub").onclick = () => {
+  window.location.href = "https://book-hub.raftforge.art/";
+};
 window.addEventListener("langchange", () => {
   applyStaticI18n();
   run();
@@ -32,17 +35,17 @@ window.addEventListener("ownerchange", () => {
   run();
 });
 
-route("/", renderHotelsList);
-route("/rooms", renderAllRooms);
-route("/clients", renderClientsList);
-route("/client/{clientId}", renderClientEdit);
-route("/hotel/{hotelId}/rooms", renderRoomsList);
-route("/hotel/{id}", renderHotelEdit);
-route("/room/{hotelId}/{roomId}/availability", renderAvailability);
-route("/room/{hotelId}/{roomId}", renderRoomEdit);
-route("/bookings", renderBookings);
-route("/staff", renderStaffList);
-route("/audit", renderAudit);
+route("/", renderHotelsList, "pageTitle.hotels");
+route("/rooms", renderAllRooms, "pageTitle.rooms");
+route("/clients", renderClientsList, "pageTitle.clients");
+route("/client/{clientId}", renderClientEdit, "pageTitle.clientEdit");
+route("/hotel/{hotelId}/rooms", renderRoomsList, "pageTitle.hotelRooms");
+route("/hotel/{id}", renderHotelEdit, "pageTitle.hotelEdit");
+route("/room/{hotelId}/{roomId}/availability", renderAvailability, "pageTitle.availability");
+route("/room/{hotelId}/{roomId}", renderRoomEdit, "pageTitle.roomEdit");
+route("/bookings", renderBookings, "pageTitle.bookings");
+route("/staff", renderStaffList, "pageTitle.staff");
+route("/audit", renderAudit, "pageTitle.audit");
 
 function maybeRenderPending() {
   const u = api.user();

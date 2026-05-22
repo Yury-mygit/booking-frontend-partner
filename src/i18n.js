@@ -29,6 +29,9 @@ export function applyStaticI18n() {
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(el.getAttribute("data-i18n"));
   });
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+    el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria")));
+  });
   const btn = document.getElementById("lang-cycle");
   if (btn) btn.textContent = lang.toUpperCase();
 }
