@@ -1,6 +1,6 @@
 import { api } from "./api.js";
 import { applyStaticI18n, cycleLang } from "./i18n.js";
-import { route, run } from "./router.js";
+import { currentPath, parentPath, route, run } from "./router.js";
 import { applyTheme, watchTheme } from "./theme.js";
 import { initTg, inTelegram, tg } from "./tg.js";
 import { renderAllRooms } from "./views/all_rooms.js";
@@ -25,7 +25,12 @@ applyStaticI18n();
 
 document.getElementById("lang-cycle").onclick = cycleLang;
 document.getElementById("back-to-hub").onclick = () => {
-  window.location.href = "https://book-hub.raftforge.art/";
+  const parent = parentPath(currentPath());
+  if (parent === null) {
+    window.location.href = "https://book-hub.raftforge.art/";
+  } else {
+    location.hash = "#" + parent;
+  }
 };
 window.addEventListener("langchange", () => {
   applyStaticI18n();
