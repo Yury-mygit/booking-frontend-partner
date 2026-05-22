@@ -1,7 +1,15 @@
 import { api } from "../api.js";
 import { t } from "../i18n.js";
-import { navigate, setPageTitle } from "../router.js";
+import { navigate, setBottomNav, setPageTitle } from "../router.js";
 import { escapeHtml, relativeTime } from "../util.js";
+
+const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+const TAB_ICONS = {
+  status: `<svg ${SVG_ATTR}><path d="M3 3v18h18"></path><rect x="7" y="13" width="3" height="5"></rect><rect x="12" y="9" width="3" height="9"></rect><rect x="17" y="5" width="3" height="13"></rect></svg>`,
+  share: `<svg ${SVG_ATTR}><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"></path></svg>`,
+  description: `<svg ${SVG_ATTR}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h8M8 17h6M8 9h2"></path></svg>`,
+  photos: `<svg ${SVG_ATTR}><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
+};
 
 const FIELDS = [
   ["name_ru", "hotel.name_ru", "input"],
@@ -20,15 +28,16 @@ const TABS = ["status", "share", "description", "photos"];
 
 let _state = { hotel: null, rooms: [], active: "status" };
 
-function tabsBarHtml() {
-  return `
-    <div class="tabs">
-      ${TABS.map((name) =>
-        `<button class="tab" data-tab="${name}">${t("edit.section." + name)}</button>`
-      ).join("")}
-    </div>
-    <div id="tab-body"></div>
-  `;
+function setHotelTabsNav(id) {
+  setBottomNav(
+    TABS.map((name) => ({
+      key: name,
+      label: t("edit.section." + name),
+      icon: TAB_ICONS[name],
+      active: name === _state.active,
+      onClick: () => switchTab(name, id),
+    })),
+  );
 }
 
 function descriptionFormHtml(hotel, canEdit = true) {
@@ -74,18 +83,14 @@ export async function renderHotelEdit({ id }) {
   }
 
   setPageTitle(`${t("pageTitle.hotelEdit")} / ${t("hotel.title.edit")}`);
-  app.innerHTML = tabsBarHtml();
-  document.querySelectorAll(".tab").forEach((b) => {
-    b.onclick = () => switchTab(b.dataset.tab, id);
-  });
+  app.innerHTML = `<div id="tab-body"></div>`;
+  setHotelTabsNav(id);
   switchTab(_state.active, id);
 }
 
 function switchTab(name, id) {
   _state.active = name;
-  document.querySelectorAll(".tab").forEach((b) =>
-    b.classList.toggle("active", b.dataset.tab === name),
-  );
+  setHotelTabsNav(id);
   const body = document.getElementById("tab-body");
   if (name === "status") return renderStatusTab(body, id);
   if (name === "share") return renderShareTab(body);
