@@ -70,6 +70,10 @@ export const api = {
       localStorage.removeItem("booking_active_owner_id");
     }
   },
+  adoptToken(token) {
+    _token = token;
+    localStorage.setItem("booking_token", token);
+  },
   clearSession() {
     _token = "";
     _user = null;
