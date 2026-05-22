@@ -25,10 +25,6 @@ export async function renderClientEdit({ clientId }) {
 
   setPageTitle(`${t("pageTitle.clientEdit")} / ${t("client.title")}`);
   app.innerHTML = `
-    <div class="form-header">
-      <a class="back-btn" href="#/clients" aria-label="${t("app.back")}">←</a>
-    </div>
-
     <div class="card">
       <div class="client-photo-block">
         ${client.photo_url

@@ -144,26 +144,6 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
 }
 .hotel-edit-btn:hover { color: var(--accent); border-color: var(--accent); }
 
-.form-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.back-btn {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  display: flex; align-items: center; justify-content: center;
-  text-decoration: none;
-  font-size: 18px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-.form-title { margin: 0; font-size: 18px; flex: 1; }
-
 .tabs {
   display: flex;
   gap: 4px;

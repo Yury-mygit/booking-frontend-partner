@@ -20,9 +20,6 @@ export async function renderRoomsList({ hotelId }) {
   const canManageRooms = api.canDo("manage_rooms", hotel.owner_user_id);
   setPageTitle(`${t("pageTitle.hotelRooms")} / ${t("hotel.rooms")} — ${hotel.name_ru}`);
   app.innerHTML = `
-    <div class="form-header">
-      <a class="back-btn" href="#/" aria-label="${t("app.back")}">←</a>
-    </div>
     <div id="rooms-list">
       ${rooms.length === 0
         ? `<p class="muted">— ${t("hotels.empty")} —</p>`

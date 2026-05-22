@@ -20,13 +20,6 @@ const TABS = ["status", "share", "description", "photos"];
 
 let _state = { hotel: null, rooms: [], active: "status" };
 
-function headerHtml() {
-  return `
-    <div class="form-header">
-      <a class="back-btn" href="#/" aria-label="${t("app.back")}">←</a>
-    </div>`;
-}
-
 function tabsBarHtml() {
   return `
     <div class="tabs">
@@ -68,10 +61,7 @@ export async function renderHotelEdit({ id }) {
 
   if (isNew) {
     setPageTitle(`${t("pageTitle.hotelEdit")} / ${t("hotel.title.new")}`);
-    app.innerHTML = `
-      ${headerHtml()}
-      ${descriptionFormHtml(null)}
-    `;
+    app.innerHTML = descriptionFormHtml(null);
     wireSaveHandler(true, id);
     return;
   }
@@ -84,10 +74,7 @@ export async function renderHotelEdit({ id }) {
   }
 
   setPageTitle(`${t("pageTitle.hotelEdit")} / ${t("hotel.title.edit")}`);
-  app.innerHTML = `
-    ${headerHtml()}
-    ${tabsBarHtml()}
-  `;
+  app.innerHTML = tabsBarHtml();
   document.querySelectorAll(".tab").forEach((b) => {
     b.onclick = () => switchTab(b.dataset.tab, id);
   });

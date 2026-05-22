@@ -26,7 +26,6 @@ export async function renderAvailability({ hotelId, roomId }) {
 
   setPageTitle(`${t("pageTitle.availability")} / ${t("avail.title", { room: room.name_ru })}`);
   app.innerHTML = `
-    <p><a href="#/room/${hotelId}/${roomId}">${t("app.back")}</a></p>
     <div class="muted">Цена по умолчанию: ${room.price_kgs} сом/ночь</div>
     <div class="cal-legend">
       <span><i style="background:var(--cal-free)"></i>${t("avail.legend.free")}</span>

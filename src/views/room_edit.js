@@ -23,13 +23,6 @@ const TABS = ["main", "description", "photos"];
 
 let _state = { hotelId: null, roomId: null, isNew: false, room: null, active: "main" };
 
-function headerHtml(hotelId) {
-  return `
-    <div class="form-header">
-      <a class="back-btn" href="#/hotel/${hotelId}/rooms" aria-label="${t("app.back")}">←</a>
-    </div>`;
-}
-
 function fieldHtml([k, key, kind], value) {
   if (kind === "textarea") {
     return `<div class="form-row"><label>${t(key)}</label>
@@ -49,10 +42,7 @@ export async function renderRoomEdit({ hotelId, roomId }) {
 
   if (isNew) {
     setPageTitle(`${t("pageTitle.roomEdit")} / ${t("room.title.new")}`);
-    app.innerHTML = `
-      ${headerHtml(hotelId)}
-      ${mainFormHtml(null)}
-    `;
+    app.innerHTML = mainFormHtml(null);
     wireSaveHandler();
     return;
   }
@@ -66,7 +56,6 @@ export async function renderRoomEdit({ hotelId, roomId }) {
 
   setPageTitle(`${t("pageTitle.roomEdit")} / ${t("room.title.edit")}`);
   app.innerHTML = `
-    ${headerHtml(hotelId)}
     <div class="tabs">
       ${TABS.map((name) =>
         `<button class="tab" data-tab="${name}">${t("edit.section." + name)}</button>`
