@@ -1,5 +1,6 @@
 import { api } from "../api.js";
 import { t } from "../i18n.js";
+import { setPageTitle } from "../router.js";
 import { escapeHtml } from "../util.js";
 
 const DOC_KINDS = ["passport", "id_card", "driving_license", "other"];
@@ -22,10 +23,10 @@ export async function renderClientEdit({ clientId }) {
   const canEdit = api.canDo("manage_bookings", api.activeOwnerId());
   const ro = canEdit ? "" : "readonly";
 
+  setPageTitle(`${t("pageTitle.clientEdit")} / ${t("client.title")}`);
   app.innerHTML = `
     <div class="form-header">
       <a class="back-btn" href="#/clients" aria-label="${t("app.back")}">←</a>
-      <h1 class="form-title">${t("client.title")}</h1>
     </div>
 
     <div class="card">

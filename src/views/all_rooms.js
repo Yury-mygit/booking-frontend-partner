@@ -16,7 +16,7 @@ let _filters = {       // current text in each filter input
 
 export async function renderAllRooms() {
   const app = document.getElementById("app");
-  app.innerHTML = `<h1>${t("rooms.title")}</h1><div id="list">${t("app.loading")}</div>`;
+  app.innerHTML = `<div id="list">${t("app.loading")}</div>`;
   try {
     _rows = await api.listAllRooms();
     renderTable();

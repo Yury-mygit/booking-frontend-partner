@@ -47,7 +47,7 @@ window.addEventListener("hashchange", () => {
 
 export async function renderBookings() {
   const app = document.getElementById("app");
-  app.innerHTML = `<h1>${t("bookings.title")}</h1><div id="list">${t("app.loading")}</div>`;
+  app.innerHTML = `<div id="list">${t("app.loading")}</div>`;
   await load();
   openStreams();
 }

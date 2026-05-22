@@ -1,5 +1,6 @@
 import { api } from "../api.js";
 import { t } from "../i18n.js";
+import { setPageTitle } from "../router.js";
 import { escapeHtml, isoDay, todayPlus } from "../util.js";
 import { openWalkinModal } from "./walkin_modal.js";
 
@@ -23,9 +24,9 @@ export async function renderAvailability({ hotelId, roomId }) {
 
   const byDate = Object.fromEntries(rows.map((r) => [r.date, r]));
 
+  setPageTitle(`${t("pageTitle.availability")} / ${t("avail.title", { room: room.name_ru })}`);
   app.innerHTML = `
     <p><a href="#/room/${hotelId}/${roomId}">${t("app.back")}</a></p>
-    <h1>${t("avail.title", { room: escapeHtml(room.name_ru) })}</h1>
     <div class="muted">Цена по умолчанию: ${room.price_kgs} сом/ночь</div>
     <div class="cal-legend">
       <span><i style="background:var(--cal-free)"></i>${t("avail.legend.free")}</span>

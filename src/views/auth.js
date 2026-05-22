@@ -1,10 +1,11 @@
 import { api } from "../api.js";
 import { t } from "../i18n.js";
+import { setPageTitle } from "../router.js";
 
 export function renderDevLogin(onLoggedIn) {
   const app = document.getElementById("app");
+  setPageTitle(t("pageTitle.devLogin"));
   app.innerHTML = `
-    <h1>${t("auth.dev_title")}</h1>
     <div class="form-row"><label>${t("auth.tg_id")}</label>
       <input id="dev-tg" type="number" value="999001" /></div>
     <div class="form-row"><label>${t("auth.first_name")}</label>

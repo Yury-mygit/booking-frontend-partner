@@ -1,5 +1,6 @@
 import { api } from "../api.js";
 import { t } from "../i18n.js";
+import { setPageTitle } from "../router.js";
 import { escapeHtml } from "../util.js";
 
 export async function renderRoomsList({ hotelId }) {
@@ -17,10 +18,10 @@ export async function renderRoomsList({ hotelId }) {
   }
 
   const canManageRooms = api.canDo("manage_rooms", hotel.owner_user_id);
+  setPageTitle(`${t("pageTitle.hotelRooms")} / ${t("hotel.rooms")} — ${hotel.name_ru}`);
   app.innerHTML = `
     <div class="form-header">
       <a class="back-btn" href="#/" aria-label="${t("app.back")}">←</a>
-      <h1 class="form-title">${t("hotel.rooms")} — ${escapeHtml(hotel.name_ru)}</h1>
     </div>
     <div id="rooms-list">
       ${rooms.length === 0

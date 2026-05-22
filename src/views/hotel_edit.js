@@ -1,6 +1,6 @@
 import { api } from "../api.js";
 import { t } from "../i18n.js";
-import { navigate } from "../router.js";
+import { navigate, setPageTitle } from "../router.js";
 import { escapeHtml, relativeTime } from "../util.js";
 
 const FIELDS = [
@@ -20,11 +20,10 @@ const TABS = ["status", "share", "description", "photos"];
 
 let _state = { hotel: null, rooms: [], active: "status" };
 
-function headerHtml(title) {
+function headerHtml() {
   return `
     <div class="form-header">
       <a class="back-btn" href="#/" aria-label="${t("app.back")}">←</a>
-      <h1 class="form-title">${title}</h1>
     </div>`;
 }
 
@@ -68,8 +67,9 @@ export async function renderHotelEdit({ id }) {
   app.innerHTML = t("app.loading");
 
   if (isNew) {
+    setPageTitle(`${t("pageTitle.hotelEdit")} / ${t("hotel.title.new")}`);
     app.innerHTML = `
-      ${headerHtml(t("hotel.title.new"))}
+      ${headerHtml()}
       ${descriptionFormHtml(null)}
     `;
     wireSaveHandler(true, id);
@@ -83,8 +83,9 @@ export async function renderHotelEdit({ id }) {
     return;
   }
 
+  setPageTitle(`${t("pageTitle.hotelEdit")} / ${t("hotel.title.edit")}`);
   app.innerHTML = `
-    ${headerHtml(t("hotel.title.edit"))}
+    ${headerHtml()}
     ${tabsBarHtml()}
   `;
   document.querySelectorAll(".tab").forEach((b) => {

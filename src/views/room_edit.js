@@ -1,6 +1,6 @@
 import { api } from "../api.js";
 import { t } from "../i18n.js";
-import { navigate } from "../router.js";
+import { navigate, setPageTitle } from "../router.js";
 import { escapeHtml } from "../util.js";
 
 const MAIN_FIELDS = [
@@ -23,11 +23,10 @@ const TABS = ["main", "description", "photos"];
 
 let _state = { hotelId: null, roomId: null, isNew: false, room: null, active: "main" };
 
-function headerHtml(title, hotelId) {
+function headerHtml(hotelId) {
   return `
     <div class="form-header">
       <a class="back-btn" href="#/hotel/${hotelId}/rooms" aria-label="${t("app.back")}">←</a>
-      <h1 class="form-title">${title}</h1>
     </div>`;
 }
 
@@ -49,8 +48,9 @@ export async function renderRoomEdit({ hotelId, roomId }) {
   app.innerHTML = t("app.loading");
 
   if (isNew) {
+    setPageTitle(`${t("pageTitle.roomEdit")} / ${t("room.title.new")}`);
     app.innerHTML = `
-      ${headerHtml(t("room.title.new"), hotelId)}
+      ${headerHtml(hotelId)}
       ${mainFormHtml(null)}
     `;
     wireSaveHandler();
@@ -64,8 +64,9 @@ export async function renderRoomEdit({ hotelId, roomId }) {
     return;
   }
 
+  setPageTitle(`${t("pageTitle.roomEdit")} / ${t("room.title.edit")}`);
   app.innerHTML = `
-    ${headerHtml(t("room.title.edit"), hotelId)}
+    ${headerHtml(hotelId)}
     <div class="tabs">
       ${TABS.map((name) =>
         `<button class="tab" data-tab="${name}">${t("edit.section." + name)}</button>`

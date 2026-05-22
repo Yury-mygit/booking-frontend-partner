@@ -1,5 +1,6 @@
 import { api } from "../api.js";
 import { t } from "../i18n.js";
+import { setPageTitle } from "../router.js";
 import { escapeHtml, relativeTime } from "../util.js";
 
 const PAGE_SIZE = 50;
@@ -23,8 +24,8 @@ export async function renderAudit() {
     return;
   }
 
+  setPageTitle(`${t("pageTitle.audit")} / ${t("audit.title")}`);
   app.innerHTML = `
-    <h2>${t("audit.title")}</h2>
     <div class="audit-filters">
       <label>${t("audit.q_filter")}
         <input id="audit-q" type="search" placeholder="${t("audit.q_placeholder")}" value="${_state.q}">

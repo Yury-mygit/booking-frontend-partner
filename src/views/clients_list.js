@@ -4,7 +4,7 @@ import { escapeHtml } from "../util.js";
 
 export async function renderClientsList() {
   const app = document.getElementById("app");
-  app.innerHTML = `<h1>${t("clients.title")}</h1><div id="list">${t("app.loading")}</div>`;
+  app.innerHTML = `<div id="list">${t("app.loading")}</div>`;
   try {
     const clients = await api.listClients();
     const list = document.getElementById("list");

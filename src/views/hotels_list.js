@@ -47,8 +47,7 @@ export async function renderHotelsList() {
   const activeOwnerId = api.activeOwnerId();
   const owner = api.owners().find((o) => o.owner_user_id === activeOwnerId);
   const isSelf = !!(owner && owner.is_self);
-  app.innerHTML = `<h1>${t("hotels.title")}</h1>
-    <div id="list">${t("app.loading")}</div>
+  app.innerHTML = `<div id="list">${t("app.loading")}</div>
     <div id="new-btn">${isSelf ? newBtnHtml() : ""}</div>`;
   try {
     const hotels = await api.listHotels();

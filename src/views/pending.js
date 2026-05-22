@@ -1,14 +1,15 @@
 import { api } from "../api.js";
 import { t } from "../i18n.js";
+import { setPageTitle } from "../router.js";
 import { escapeHtml } from "../util.js";
 
 export function renderPending() {
   const app = document.getElementById("app");
   const user = api.user() || {};
+  setPageTitle(t("pageTitle.pending"));
   app.innerHTML = `
     <div class="pending-screen">
       <div class="pending-emoji">⏳</div>
-      <h1>${t("pending.title")}</h1>
       <p>${t("pending.body")}</p>
       <p class="muted small">${t("pending.requested_as")} <b>${escapeHtml(user.first_name || "")}</b> · ID ${user.telegram_id || "—"}</p>
       <div style="margin-top:18px">

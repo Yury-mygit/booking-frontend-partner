@@ -27,7 +27,6 @@ export async function renderStaffList() {
 
   app.innerHTML = `
     <div class="staff-header-row">
-      <h2>${t("staff.title")}</h2>
       <a class="pill-link" href="#/audit">${t("staff.audit_link")}</a>
     </div>
     <p class="muted">${t("staff.scope_hint", { owner: owner ? (owner.owner_display_name || "—") : "—" })}</p>
